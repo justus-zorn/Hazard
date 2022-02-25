@@ -7,14 +7,15 @@
 #include <string>
 #include <vector>
 
+#include <enet.h>
+
 namespace Hazard {
 	class WritePacket {
 	public:
 		void Write32(std::uint32_t value);
 		void WriteString(const std::string& value);
 
-		const std::uint8_t* Data() const;
-		std::uint32_t Length() const;
+		ENetPacket* GetPacket(bool reliable);
 
 	private:
 		std::vector<std::uint8_t> data;
@@ -22,7 +23,7 @@ namespace Hazard {
 
 	class ReadPacket {
 	public:
-		ReadPacket(const std::uint8_t* data, std::uint32_t length);
+		ReadPacket(ENetPacket* packet);
 
 		std::uint32_t Read32();
 		std::string ReadString();

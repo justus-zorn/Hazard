@@ -43,8 +43,7 @@ Client::Client(const std::string& player_name, const std::string& address, std::
 		WritePacket packet;
 		packet.WriteString(player_name);
 
-		ENetPacket* login_packet = enet_packet_create(packet.Data(), packet.Length(), ENET_PACKET_FLAG_RELIABLE);
-		enet_peer_send(server, 0, login_packet);
+		enet_peer_send(server, 0, packet.GetPacket(true));
 	}
 	else {
 		std::cerr << "ERROR: Could not connect to " << address << '\n';

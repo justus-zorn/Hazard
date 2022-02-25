@@ -51,24 +51,27 @@ void Scene::Update() {
 		case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
 			if (event.peer->data != nullptr) {
 				Player* player = reinterpret_cast<Player*>(event.peer->data);
-
-				std::cout << "INFO: " << player->player_name << " left the game\n";
-				players.erase(player->player_name);
+				Lua_OnDisconnect(player->playerName);
+				players.erase(player->playerName);
 			}
 			break;
 		case ENET_EVENT_TYPE_RECEIVE:
 			if (event.channelID == 0) {
-				ReadPacket packet(event.packet->data, event.packet->dataLength);
-				std::string player_name = packet.ReadString();
+				ReadPacket packet(event.packet);
+				std::string playerName = packet.ReadString();
 
-				// TODO: Call OnLogin function in Lua script
-				std::cout << "INFO: " << player_name << " joined the game\n";
+				if (players.find(playerName) != players.end() || !Lua_OnPreLogin(playerName)) {
+					enet_peer_disconnect(event.peer, 0);
+				}
+				else {
+					Player& player = players[playerName];
+					player.playerName = playerName;
+					player.peer = event.peer;
 
-				Player& player = players[player_name];
-				player.player_name = player_name;
-				player.peer = event.peer;
+					event.peer->data = &player;
 
-				event.peer->data = &player;
+					Lua_OnPostLogin(playerName);
+				}
 			}
 			break;
 		}
@@ -76,7 +79,74 @@ void Scene::Update() {
 }
 
 void Scene::Reload() {
+	lua_newtable(L);
+	lua_setglobal(L, "Game");
+
 	if (luaL_dofile(L, path.c_str()) != LUA_OK) {
-		std::cerr << "ERROR: Could not load Lua script: " << lua_tostring(L, -1) << '\n';
+		std::cerr << "ERROR: Error while loading Lua script: " << lua_tostring(L, -1) << '\n';
 	}
+}
+
+bool Scene::Lua_OnPreLogin(const std::string& playerName) {
+	lua_getglobal(L, "Game");
+	lua_getfield(L, -1, "OnPreLogin");
+
+	if (lua_isnil(L, -1)) {
+		lua_settop(L, 0);
+		return true;
+	}
+
+	lua_pushstring(L, playerName.c_str());
+
+	if (lua_pcall(L, 1, 1, 0) != LUA_OK) {
+		std::cerr << "ERROR: Error while calling Game.OnPreLogin: " << lua_tostring(L, -1) << '\n';
+		lua_settop(L, 0);
+		return false;
+	}
+
+	if (!lua_isboolean(L, -1)) {
+		std::cerr << "ERROR: Game.OnPreLogin must return a boolean\n";
+		lua_settop(L, 0);
+		return false;
+	}
+
+	bool result = lua_toboolean(L, -1);
+	lua_settop(L, 0);
+	return result;
+}
+
+void Scene::Lua_OnPostLogin(const std::string& playerName) {
+	lua_getglobal(L, "Game");
+	lua_getfield(L, -1, "OnPostLogin");
+
+	if (lua_isnil(L, -1)) {
+		lua_settop(L, 0);
+		return;
+	}
+
+	lua_pushstring(L, playerName.c_str());
+
+	if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+		std::cerr << "ERROR: Error while calling Game.OnPostLogin: " << lua_tostring(L, -1) << '\n';
+	}
+
+	lua_settop(L, 0);
+}
+
+void Scene::Lua_OnDisconnect(const std::string& playerName) {
+	lua_getglobal(L, "Game");
+	lua_getfield(L, -1, "OnDisconnect");
+
+	if (lua_isnil(L, -1)) {
+		lua_settop(L, 0);
+		return;
+	}
+
+	lua_pushstring(L, playerName.c_str());
+
+	if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+		std::cerr << "ERROR: Error while calling Game.OnDisconnect: " << lua_tostring(L, -1) << '\n';
+	}
+
+	lua_settop(L, 0);
 }

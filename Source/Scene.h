@@ -23,7 +23,7 @@ namespace Hazard {
 
 	private:
 		struct Player {
-			std::string player_name;
+			std::string playerName;
 			ENetPeer* peer;
 		};
 
@@ -35,6 +35,10 @@ namespace Hazard {
 		std::unordered_map<std::string, Player> players;
 
 		void Reload();
+
+		bool Lua_OnPreLogin(const std::string& playerName);
+		void Lua_OnPostLogin(const std::string& playerName);
+		void Lua_OnDisconnect(const std::string& playerName);
 	};
 }
 

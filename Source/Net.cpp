@@ -22,15 +22,11 @@ void WritePacket::WriteString(const std::string& value) {
 	std::memcpy(&data[start], value.data(), value.length());
 }
 
-const std::uint8_t* WritePacket::Data() const {
-	return data.data();
+ENetPacket* WritePacket::GetPacket(bool reliable) {
+	return enet_packet_create(data.data(), data.size(), reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
 }
 
-std::uint32_t WritePacket::Length() const {
-	return static_cast<std::uint32_t>(data.size());
-}
-
-ReadPacket::ReadPacket(const std::uint8_t* data, std::uint32_t length) : data{ data }, dataLength{ length } {}
+ReadPacket::ReadPacket(ENetPacket* packet) : data{ packet->data }, dataLength{ static_cast<std::uint32_t>(packet->dataLength) } {}
 
 std::uint32_t ReadPacket::Read32() {
 	if (sizeof(std::uint32_t) < dataLength && index <= dataLength - sizeof(std::uint32_t)) {
