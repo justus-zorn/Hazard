@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <string>
+#include <unordered_map>
 
 #include <enet.h>
 #include <lua.hpp>
@@ -21,10 +22,17 @@ namespace Hazard {
 		void Update();
 
 	private:
+		struct Player {
+			std::string player_name;
+			ENetPeer* peer;
+		};
+
 		ENetHost* host = nullptr;
 
 		std::string path;
 		lua_State* L = nullptr;
+
+		std::unordered_map<std::string, Player> players;
 
 		void Reload();
 	};

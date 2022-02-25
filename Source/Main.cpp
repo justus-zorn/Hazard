@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	if (argc > 1) {
-		Client client(argv[1], 34344);
+		Client client(argv[2], argv[1], 34344);
 		Window window("My window", 1280, 720);
 		while (client.Update() && !window.ShouldClose()) {
 			window.Update();

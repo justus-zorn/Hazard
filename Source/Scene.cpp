@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "Net.h"
 #include "Scene.h"
 
 using namespace Hazard;
@@ -44,14 +45,31 @@ void Scene::Update() {
 	while (enet_host_service(host, &event, 0) > 0) {
 		switch (event.type) {
 		case ENET_EVENT_TYPE_CONNECT:
-			std::cout << "INFO: Player connected\n";
+			event.peer->data = nullptr;
 			break;
 		case ENET_EVENT_TYPE_DISCONNECT:
 		case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
-			std::cout << "INFO: Player disconnected\n";
+			if (event.peer->data != nullptr) {
+				Player* player = reinterpret_cast<Player*>(event.peer->data);
+
+				std::cout << "INFO: " << player->player_name << " left the game\n";
+				players.erase(player->player_name);
+			}
 			break;
 		case ENET_EVENT_TYPE_RECEIVE:
-			// TODO: Handle receiving packets
+			if (event.channelID == 0) {
+				ReadPacket packet(event.packet->data, event.packet->dataLength);
+				std::string player_name = packet.ReadString();
+
+				// TODO: Call OnLogin function in Lua script
+				std::cout << "INFO: " << player_name << " joined the game\n";
+
+				Player& player = players[player_name];
+				player.player_name = player_name;
+				player.peer = event.peer;
+
+				event.peer->data = &player;
+			}
 			break;
 		}
 	}

@@ -11,7 +11,7 @@
 namespace Hazard {
 	class Client {
 	public:
-		Client(const std::string& address, std::uint16_t defaultPort);
+		Client(const std::string& player_name, const std::string& address, std::uint16_t defaultPort);
 		Client(const Client&) = delete;
 		~Client();
 

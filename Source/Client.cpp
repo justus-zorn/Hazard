@@ -3,10 +3,11 @@
 #include <iostream>
 
 #include "Client.h"
+#include "Net.h"
 
 using namespace Hazard;
 
-Client::Client(const std::string& address, std::uint16_t defaultPort) {
+Client::Client(const std::string& player_name, const std::string& address, std::uint16_t defaultPort) {
 	std::string hostname;
 	std::uint16_t port;
 	if (address.find(':') < address.size()) {
@@ -39,7 +40,11 @@ Client::Client(const std::string& address, std::uint16_t defaultPort) {
 
 	ENetEvent event;
 	if (enet_host_service(host, &event, 3000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
-		// TODO: Handle logging in
+		WritePacket packet;
+		packet.WriteString(player_name);
+
+		ENetPacket* login_packet = enet_packet_create(packet.Data(), packet.Length(), ENET_PACKET_FLAG_RELIABLE);
+		enet_peer_send(server, 0, login_packet);
 	}
 	else {
 		std::cerr << "ERROR: Could not connect to " << address << '\n';
