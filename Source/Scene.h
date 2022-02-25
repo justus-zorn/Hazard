@@ -10,6 +10,8 @@
 #include <enet.h>
 #include <lua.hpp>
 
+#include "Common.h"
+
 namespace Hazard {
 	class Scene {
 	public:
@@ -25,6 +27,7 @@ namespace Hazard {
 		struct Player {
 			std::string playerName;
 			ENetPeer* peer;
+			std::vector<Sprite> sprites;
 		};
 
 		ENetHost* host = nullptr;

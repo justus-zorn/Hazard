@@ -29,7 +29,7 @@ ENetPacket* WritePacket::GetPacket(bool reliable) {
 ReadPacket::ReadPacket(ENetPacket* packet) : data{ packet->data }, dataLength{ static_cast<std::uint32_t>(packet->dataLength) } {}
 
 std::uint32_t ReadPacket::Read32() {
-	if (sizeof(std::uint32_t) < dataLength && index <= dataLength - sizeof(std::uint32_t)) {
+	if (sizeof(std::uint32_t) <= dataLength && index <= dataLength - sizeof(std::uint32_t)) {
 		std::uint32_t value = SDL_SwapBE32(*reinterpret_cast<const std::uint32_t*>(data + index));
 		index += sizeof(std::uint32_t);
 		return value;
@@ -42,7 +42,7 @@ std::uint32_t ReadPacket::Read32() {
 
 std::string ReadPacket::ReadString() {
 	std::uint32_t stringLength = Read32();
-	if (stringLength < dataLength && index <= dataLength - stringLength) {
+	if (stringLength <= dataLength && index <= dataLength - stringLength) {
 		std::string value;
 		value.resize(stringLength);
 		std::memcpy(&value[0], data + index, stringLength);

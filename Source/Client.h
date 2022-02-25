@@ -5,8 +5,11 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include <enet.h>
+
+#include "Common.h"
 
 namespace Hazard {
 	class Client {
@@ -19,9 +22,13 @@ namespace Hazard {
 
 		bool Update();
 
+		const std::vector<Sprite>& GetSprites() const;
+
 	private:
 		ENetHost* host = nullptr;
 		ENetPeer* server = nullptr;
+
+		std::vector<Sprite> sprites;
 	};
 }
 

@@ -73,8 +73,22 @@ void Scene::Update() {
 					Lua_OnPostLogin(playerName);
 				}
 			}
+			enet_packet_destroy(event.packet);
 			break;
 		}
+	}
+
+	for (auto& pair : players) {
+		WritePacket statePacket;
+		statePacket.Write32(static_cast<std::uint32_t>(pair.second.sprites.size()));
+		for (const Sprite& sprite : pair.second.sprites) {
+			statePacket.Write32(sprite.x);
+			statePacket.Write32(sprite.y);
+			statePacket.Write32(sprite.scale);
+			statePacket.Write32(sprite.texture);
+			statePacket.Write32(sprite.animation);
+		}
+		enet_peer_send(pair.second.peer, 1, statePacket.GetPacket(false));
 	}
 }
 
