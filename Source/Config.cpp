@@ -23,6 +23,8 @@ Config::~Config() {
 }
 
 void Config::Reload() {
+	textures.clear();
+
 	lua_newtable(L);
 	lua_setglobal(L, "Content");
 

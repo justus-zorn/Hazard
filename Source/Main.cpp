@@ -35,7 +35,8 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	else {
-		Scene scene("main.lua");
+		Config config("config.lua");
+		Scene scene("main.lua", config);
 		while (true) {
 			std::uint64_t start = SDL_GetTicks64();
 			scene.Update();
