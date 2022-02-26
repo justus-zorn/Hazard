@@ -7,7 +7,7 @@
 
 using namespace Hazard;
 
-Client::Client(const std::string& player_name, const std::string& address, std::uint16_t defaultPort) {
+Client::Client(const std::string& playerName, const std::string& address, std::uint16_t defaultPort) {
 	std::string hostname;
 	std::uint16_t port;
 	if (address.find(':') < address.size()) {
@@ -19,7 +19,7 @@ Client::Client(const std::string& player_name, const std::string& address, std::
 		port = defaultPort;
 	}
 
-	host = enet_host_create(nullptr, 1, 2, 0, 0);
+	host = enet_host_create(nullptr, 1, 3, 0, 0);
 	if (!host) {
 		std::cerr << "ERROR: Could not create ENet host\n";
 		return;
@@ -32,7 +32,7 @@ Client::Client(const std::string& player_name, const std::string& address, std::
 		return;
 	}
 
-	server = enet_host_connect(host, &serverAddress, 2, 0);
+	server = enet_host_connect(host, &serverAddress, 3, 0);
 	if (!server) {
 		std::cerr << "ERROR: Could not connect to " << address << '\n';
 		return;
@@ -41,7 +41,7 @@ Client::Client(const std::string& player_name, const std::string& address, std::
 	ENetEvent event;
 	if (enet_host_service(host, &event, 3000) > 0 && event.type == ENET_EVENT_TYPE_CONNECT) {
 		WritePacket packet;
-		packet.WriteString(player_name);
+		packet.WriteString(playerName);
 
 		enet_peer_send(server, 0, packet.GetPacket(true));
 	}
@@ -55,7 +55,7 @@ Client::~Client() {
 	enet_host_destroy(host);
 }
 
-bool Client::Update() {
+bool Client::Update(const Input& input) {
 	ENetEvent event;
 	while (enet_host_service(host, &event, 0) > 0) {
 		switch (event.type) {
@@ -80,6 +80,26 @@ bool Client::Update() {
 			break;
 		}
 	}
+
+	WritePacket inputPacket;
+	inputPacket.Write32(input.keyboardInputs.size());
+	for (KeyboardInput keyboardInput : input.keyboardInputs) {
+		inputPacket.Write32(keyboardInput.key);
+		inputPacket.Write8(keyboardInput.pressed);
+	}
+	inputPacket.Write32(input.mouseButtonInputs.size());
+	for (MouseButtonInput mouseButtonInput : input.mouseButtonInputs) {
+		inputPacket.Write32(mouseButtonInput.x);
+		inputPacket.Write32(mouseButtonInput.y);
+		inputPacket.Write8(mouseButtonInput.button);
+		inputPacket.Write8(mouseButtonInput.pressed);
+	}
+	inputPacket.Write32(input.mouseMotionX);
+	inputPacket.Write32(input.mouseMotionY);
+	inputPacket.Write8(input.mouseMotion);
+
+	enet_peer_send(server, 2, inputPacket.GetPacket(true));
+
 	return true;
 }
 

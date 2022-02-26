@@ -28,12 +28,15 @@ namespace Hazard {
 
 		void DrawSprite(const Sprite& sprite);
 
+		const Input& GetInput() const;
+
 	private:
 		SDL_Window* window = nullptr;
 		SDL_Renderer* renderer = nullptr;
 		bool shouldClose = false;
 
 		std::vector<SDL_Texture*> loadedTextures;
+		Input input;
 
 		void FreeTextures();
 	};

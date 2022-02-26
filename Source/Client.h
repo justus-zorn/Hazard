@@ -20,7 +20,7 @@ namespace Hazard {
 
 		Client& operator=(const Client&) = delete;
 
-		bool Update();
+		bool Update(const Input& input);
 
 		const std::vector<Sprite>& GetSprites() const;
 

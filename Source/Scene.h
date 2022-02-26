@@ -42,6 +42,12 @@ namespace Hazard {
 		bool Lua_OnPreLogin(const std::string& playerName);
 		void Lua_OnPostLogin(const std::string& playerName);
 		void Lua_OnDisconnect(const std::string& playerName);
+
+		void Lua_OnKeyDown(const std::string& playerName, std::int32_t key);
+		void Lua_OnKeyUp(const std::string& playerName, std::int32_t key);
+		void Lua_OnMouseButtonDown(const std::string& playerName, std::int32_t x, std::int32_t y, std::uint8_t key);
+		void Lua_OnMouseButtonUp(const std::string& playerName, std::int32_t x, std::int32_t y, std::uint8_t key);
+		void Lua_OnMouseMotion(const std::string& playerName, std::int32_t x, std::int32_t y);
 	};
 }
 

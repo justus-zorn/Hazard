@@ -23,8 +23,11 @@ int main(int argc, char* argv[]) {
 		Window window("My window", 1280, 720);
 
 		window.LoadTextures(config.GetTextures());
-		while (client.Update() && !window.ShouldClose()) {
+		while (!window.ShouldClose()) {
 			window.Update();
+			if (!client.Update(window.GetInput())) {
+				break;
+			}
 			for (const Sprite& sprite : client.GetSprites()) {
 				window.DrawSprite(sprite);
 			}

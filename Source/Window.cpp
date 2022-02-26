@@ -46,11 +46,33 @@ Window::~Window() {
 }
 
 void Window::Update() {
+	input.Clear();
+
+	int windowWidth, windowHeight;
+	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
 		case SDL_QUIT:
 			shouldClose = true;
+			break;
+		case SDL_KEYDOWN:
+			input.keyboardInputs.push_back({ event.key.keysym.sym, true });
+			break;
+		case SDL_KEYUP:
+			input.keyboardInputs.push_back({ event.key.keysym.sym, false });
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+			input.mouseButtonInputs.push_back({ event.button.x - windowWidth / 2, windowHeight / 2 - event.button.y, event.button.button, true });
+			break;
+		case SDL_MOUSEBUTTONUP:
+			input.mouseButtonInputs.push_back({ event.button.x - windowWidth / 2, windowHeight / 2 - event.button.y, event.button.button, false });
+			break;
+		case SDL_MOUSEMOTION:
+			input.mouseMotionX = event.motion.x - windowWidth / 2;
+			input.mouseMotionY = windowHeight / 2 - event.motion.y;
+			input.mouseMotion = true;
 			break;
 		}
 	}
@@ -111,6 +133,10 @@ void Window::DrawSprite(const Sprite& sprite) {
 	dst.h = sprite.scale * 2;
 
 	SDL_RenderCopy(renderer, texture, &src, &dst);
+}
+
+const Input& Window::GetInput() const {
+	return input;
 }
 
 void Window::FreeTextures() {

@@ -9,6 +9,10 @@
 
 using namespace Hazard;
 
+void WritePacket::Write8(std::uint8_t value) {
+	data.push_back(value);
+}
+
 void WritePacket::Write32(std::uint32_t value) {
 	std::uint32_t start = static_cast<std::uint32_t>(data.size());
 	data.resize(start + 4);
@@ -27,6 +31,16 @@ ENetPacket* WritePacket::GetPacket(bool reliable) {
 }
 
 ReadPacket::ReadPacket(ENetPacket* packet) : data{ packet->data }, dataLength{ static_cast<std::uint32_t>(packet->dataLength) } {}
+
+std::uint8_t ReadPacket::Read8() {
+	if (index < dataLength) {
+		return data[index++];
+	}
+	else {
+		std::cerr << "ERROR: Detected invalid packet\n";
+		return 0;
+	}
+}
 
 std::uint32_t ReadPacket::Read32() {
 	if (sizeof(std::uint32_t) <= dataLength && index <= dataLength - sizeof(std::uint32_t)) {
