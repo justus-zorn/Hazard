@@ -8,7 +8,7 @@
 
 using namespace Hazard;
 
-Window::Window(const std::string& title, int width, int height) {
+Window::Window(const std::string& title, std::uint32_t width, std::uint32_t height) {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		std::cerr << "ERROR: Could not initialize SDL: " << SDL_GetError() << '\n';
 		return;
@@ -45,8 +45,10 @@ Window::~Window() {
 	SDL_Quit();
 }
 
-void Window::Update() {
+bool Window::Update() {
 	input.Clear();
+
+	bool shouldReload = false;
 
 	int windowWidth, windowHeight;
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
@@ -58,6 +60,9 @@ void Window::Update() {
 			shouldClose = true;
 			break;
 		case SDL_KEYDOWN:
+			if (event.key.keysym.sym == SDLK_F5) {
+				shouldReload = true;
+			}
 			input.keyboardInputs.push_back({ event.key.keysym.sym, true });
 			break;
 		case SDL_KEYUP:
@@ -76,6 +81,8 @@ void Window::Update() {
 			break;
 		}
 	}
+
+	return shouldReload;
 }
 
 void Window::Present() {
@@ -139,8 +146,18 @@ const Input& Window::GetInput() const {
 	return input;
 }
 
+void Window::SetTitle(const std::string& title) {
+	SDL_SetWindowTitle(window, title.c_str());
+}
+
+void Window::SetSize(std::uint32_t width, std::uint32_t height) {
+	SDL_SetWindowSize(window, width, height);
+	SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+}
+
 void Window::FreeTextures() {
 	for (SDL_Texture* texture : loadedTextures) {
 		SDL_DestroyTexture(texture);
 	}
+	loadedTextures.clear();
 }

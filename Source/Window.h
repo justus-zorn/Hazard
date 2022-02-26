@@ -13,13 +13,13 @@
 namespace Hazard {
 	class Window {
 	public:
-		Window(const std::string& title, int width, int height);
+		Window(const std::string& title, std::uint32_t width, std::uint32_t height);
 		Window(const Window&) = delete;
 		~Window();
 
 		Window& operator=(const Window&) = delete;
 
-		void Update();
+		bool Update();
 		void Present();
 
 		bool ShouldClose() const;
@@ -29,6 +29,9 @@ namespace Hazard {
 		void DrawSprite(const Sprite& sprite);
 
 		const Input& GetInput() const;
+
+		void SetTitle(const std::string& title);
+		void SetSize(std::uint32_t width, std::uint32_t height);
 
 	private:
 		SDL_Window* window = nullptr;

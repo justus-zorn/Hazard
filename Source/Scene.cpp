@@ -9,8 +9,6 @@
 
 using namespace Hazard;
 
-constexpr std::uint16_t HAZARD_DEFAULT_PORT = 34344;
-
 Scene::Scene(std::string script, Config& config, std::uint16_t port) : config{ config }, path { script } {
 	L = luaL_newstate();
 	if (!L) {
@@ -25,7 +23,7 @@ Scene::Scene(std::string script, Config& config, std::uint16_t port) : config{ c
 	ENetAddress address = { 0 };
 	address.host = ENET_HOST_ANY;
 	if (port == 0) {
-		address.port = HAZARD_DEFAULT_PORT;
+		address.port = config.Port();
 	}
 	else {
 		address.port = port;
@@ -212,6 +210,10 @@ void Scene::Reload() {
 
 void Scene::Lua_OnTick(double dt) {
 	lua_getglobal(L, "Game");
+	if (lua_isnil(L, -1)) {
+		std::cerr << "ERROR: Game is nil\n";
+		return;
+	}
 	lua_getfield(L, -1, "OnTick");
 
 	if (lua_isnil(L, -1)) {
@@ -230,6 +232,10 @@ void Scene::Lua_OnTick(double dt) {
 
 bool Scene::Lua_OnPreLogin(const std::string& playerName) {
 	lua_getglobal(L, "Game");
+	if (lua_isnil(L, -1)) {
+		std::cerr << "ERROR: Game is nil\n";
+		return false;
+	}
 	lua_getfield(L, -1, "OnPreLogin");
 
 	if (lua_isnil(L, -1)) {
@@ -258,6 +264,10 @@ bool Scene::Lua_OnPreLogin(const std::string& playerName) {
 
 void Scene::Lua_OnPostLogin(const std::string& playerName) {
 	lua_getglobal(L, "Game");
+	if (lua_isnil(L, -1)) {
+		std::cerr << "ERROR: Game is nil\n";
+		return;
+	}
 	lua_getfield(L, -1, "OnPostLogin");
 
 	if (lua_isnil(L, -1)) {
@@ -276,6 +286,10 @@ void Scene::Lua_OnPostLogin(const std::string& playerName) {
 
 void Scene::Lua_OnDisconnect(const std::string& playerName) {
 	lua_getglobal(L, "Game");
+	if (lua_isnil(L, -1)) {
+		std::cerr << "ERROR: Game is nil\n";
+		return;
+	}
 	lua_getfield(L, -1, "OnDisconnect");
 
 	if (lua_isnil(L, -1)) {
@@ -294,6 +308,10 @@ void Scene::Lua_OnDisconnect(const std::string& playerName) {
 
 void Scene::Lua_OnKeyDown(const std::string& playerName, const std::string& key) {
 	lua_getglobal(L, "Game");
+	if (lua_isnil(L, -1)) {
+		std::cerr << "ERROR: Game is nil\n";
+		return;
+	}
 	lua_getfield(L, -1, "OnKeyDown");
 
 	if (lua_isnil(L, -1)) {
@@ -313,6 +331,10 @@ void Scene::Lua_OnKeyDown(const std::string& playerName, const std::string& key)
 
 void Scene::Lua_OnKeyUp(const std::string& playerName, const std::string& key) {
 	lua_getglobal(L, "Game");
+	if (lua_isnil(L, -1)) {
+		std::cerr << "ERROR: Game is nil\n";
+		return;
+	}
 	lua_getfield(L, -1, "OnKeyUp");
 
 	if (lua_isnil(L, -1)) {
@@ -332,6 +354,10 @@ void Scene::Lua_OnKeyUp(const std::string& playerName, const std::string& key) {
 
 void Scene::Lua_OnMouseButtonDown(const std::string& playerName, std::int32_t x, std::int32_t y, const std::string& button) {
 	lua_getglobal(L, "Game");
+	if (lua_isnil(L, -1)) {
+		std::cerr << "ERROR: Game is nil\n";
+		return;
+	}
 	lua_getfield(L, -1, "OnMouseButtonDown");
 
 	if (lua_isnil(L, -1)) {
@@ -353,6 +379,10 @@ void Scene::Lua_OnMouseButtonDown(const std::string& playerName, std::int32_t x,
 
 void Scene::Lua_OnMouseButtonUp(const std::string& playerName, std::int32_t x, std::int32_t y, const std::string& button) {
 	lua_getglobal(L, "Game");
+	if (lua_isnil(L, -1)) {
+		std::cerr << "ERROR: Game is nil\n";
+		return;
+	}
 	lua_getfield(L, -1, "OnMouseButtonUp");
 
 	if (lua_isnil(L, -1)) {
@@ -374,6 +404,10 @@ void Scene::Lua_OnMouseButtonUp(const std::string& playerName, std::int32_t x, s
 
 void Scene::Lua_OnMouseMotion(const std::string& playerName, std::int32_t x, std::int32_t y) {
 	lua_getglobal(L, "Game");
+	if (lua_isnil(L, -1)) {
+		std::cerr << "ERROR: Game is nil\n";
+		return;
+	}
 	lua_getfield(L, -1, "OnMouseMotion");
 
 	if (lua_isnil(L, -1)) {

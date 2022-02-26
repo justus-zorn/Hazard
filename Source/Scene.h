@@ -24,6 +24,8 @@ namespace Hazard {
 
 		void Update();
 
+		void Reload();
+
 	private:
 		struct Player {
 			std::string playerName;
@@ -47,8 +49,6 @@ namespace Hazard {
 		std::unordered_map<std::string, Player> players;
 
 		std::uint64_t lastTick;
-
-		void Reload();
 
 		void Lua_OnTick(double dt);
 

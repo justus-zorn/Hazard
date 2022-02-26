@@ -3,6 +3,7 @@
 #ifndef Hazard_Config_h
 #define Hazard_Config_h
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -20,12 +21,19 @@ namespace Hazard {
 		void Reload();
 
 		const std::vector<std::string>& GetTextures() const;
+		const std::string& WindowTitle() const;
+		std::uint32_t WindowWidth() const;
+		std::uint32_t WindowHeight() const;
+		std::uint16_t Port() const;
 
 	private:
 		std::string path;
 		lua_State* L = nullptr;
 
 		std::vector<std::string> textures;
+		std::string windowTitle;
+		std::uint32_t windowWidth, windowHeight;
+		std::uint16_t port;
 	};
 }
 

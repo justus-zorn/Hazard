@@ -82,12 +82,12 @@ bool Client::Update(const Input& input) {
 	}
 
 	WritePacket inputPacket;
-	inputPacket.Write32(input.keyboardInputs.size());
+	inputPacket.Write32(static_cast<std::uint32_t>(input.keyboardInputs.size()));
 	for (KeyboardInput keyboardInput : input.keyboardInputs) {
 		inputPacket.Write32(keyboardInput.key);
 		inputPacket.Write8(keyboardInput.pressed);
 	}
-	inputPacket.Write32(input.mouseButtonInputs.size());
+	inputPacket.Write32(static_cast<std::uint32_t>(input.mouseButtonInputs.size()));
 	for (MouseButtonInput mouseButtonInput : input.mouseButtonInputs) {
 		inputPacket.Write32(mouseButtonInput.x);
 		inputPacket.Write32(mouseButtonInput.y);
