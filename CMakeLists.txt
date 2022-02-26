@@ -7,8 +7,9 @@ project("Hazard")
 add_subdirectory("3rdParty/lua")
 add_subdirectory("3rdParty/enet")
 add_subdirectory("3rdParty/SDL2")
+add_subdirectory("3rdParty/SDL2_image")
 
 file(GLOB HazardSourceFiles "Source/*.cpp")
 
 add_executable("Hazard" ${HazardSourceFiles})
-target_link_libraries("Hazard" PRIVATE "lua" "enet" "SDL2::SDL2-static" "SDL2::SDL2main")
+target_link_libraries("Hazard" PRIVATE "lua" "enet" "SDL2::SDL2-static" "SDL2::SDL2main" "SDL2::image")

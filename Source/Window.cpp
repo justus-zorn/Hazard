@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include <SDL_image.h>
+
 #include "Window.h"
 
 using namespace Hazard;
@@ -20,8 +22,13 @@ Window::Window(const std::string& title, int width, int height) {
 
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	if (!renderer) {
-		std::cout << "ERROR: Could not create renderer: " << SDL_GetError() << '\n';
+		std::cerr << "ERROR: Could not create renderer: " << SDL_GetError() << '\n';
 		return;
+	}
+
+	int img_flags = IMG_INIT_JPG | IMG_INIT_PNG | IMG_INIT_WEBP;
+	if (IMG_Init(img_flags) != img_flags) {
+		std::cerr << "ERROR: Could not load SDL_image: " << IMG_GetError() << '\n';
 	}
 
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -30,6 +37,8 @@ Window::Window(const std::string& title, int width, int height) {
 
 Window::~Window() {
 	FreeTextures();
+
+	IMG_Quit();
 
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
@@ -61,7 +70,7 @@ void Window::LoadTextures(const std::vector<std::string>& textures) {
 
 	for (const std::string& texture : textures) {
 		std::string path = "Textures/" + texture;
-		SDL_Surface* surface = SDL_LoadBMP(path.c_str());
+		SDL_Surface* surface = IMG_Load(path.c_str());
 		if (surface) {
 			SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
 			SDL_FreeSurface(surface);
