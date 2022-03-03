@@ -42,6 +42,7 @@ Window::~Window() {
 
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
+
 	SDL_Quit();
 }
 
@@ -69,10 +70,10 @@ bool Window::Update() {
 			input.keyboardInputs.push_back({ event.key.keysym.sym, false });
 			break;
 		case SDL_MOUSEBUTTONDOWN:
-			input.mouseButtonInputs.push_back({ event.button.x - windowWidth / 2, windowHeight / 2 - event.button.y, event.button.button, true });
+			input.buttonInputs.push_back({ event.button.button, true });
 			break;
 		case SDL_MOUSEBUTTONUP:
-			input.mouseButtonInputs.push_back({ event.button.x - windowWidth / 2, windowHeight / 2 - event.button.y, event.button.button, false });
+			input.buttonInputs.push_back({ event.button.button, false });
 			break;
 		case SDL_MOUSEMOTION:
 			input.mouseMotionX = event.motion.x - windowWidth / 2;

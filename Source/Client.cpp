@@ -61,7 +61,6 @@ bool Client::Update(const Input& input) {
 		switch (event.type) {
 		case ENET_EVENT_TYPE_DISCONNECT:
 		case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
-			std::cout << "INFO: Disconnected\n";
 			return false;
 		case ENET_EVENT_TYPE_RECEIVE:
 			if (event.channelID == 1) {
@@ -87,12 +86,10 @@ bool Client::Update(const Input& input) {
 		inputPacket.Write32(keyboardInput.key);
 		inputPacket.Write8(keyboardInput.pressed);
 	}
-	inputPacket.Write32(static_cast<std::uint32_t>(input.mouseButtonInputs.size()));
-	for (MouseButtonInput mouseButtonInput : input.mouseButtonInputs) {
-		inputPacket.Write32(mouseButtonInput.x);
-		inputPacket.Write32(mouseButtonInput.y);
-		inputPacket.Write8(mouseButtonInput.button);
-		inputPacket.Write8(mouseButtonInput.pressed);
+	inputPacket.Write32(static_cast<std::uint32_t>(input.buttonInputs.size()));
+	for (ButtonInput buttonInput : input.buttonInputs) {
+		inputPacket.Write8(buttonInput.button);
+		inputPacket.Write8(buttonInput.pressed);
 	}
 	inputPacket.Write32(input.mouseMotionX);
 	inputPacket.Write32(input.mouseMotionY);

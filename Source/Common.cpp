@@ -6,6 +6,6 @@ using namespace Hazard;
 
 void Input::Clear() {
 	keyboardInputs.clear();
-	mouseButtonInputs.clear();
+	buttonInputs.clear();
 	mouseMotion = false;
 }
