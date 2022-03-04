@@ -25,7 +25,7 @@ Scene::Scene(std::string script, Config& config, std::uint16_t port) : config{ c
 		return;
 	}
 
-	lastTick = SDL_GetTicks64();
+	lastTicks = SDL_GetTicks64();
 
 	std::uint32_t i = 0;
 	for (const std::string& texture : config.GetTextures()) {
@@ -138,8 +138,9 @@ void Scene::Update() {
 	}
 
 	std::uint64_t now = SDL_GetTicks64();
-	script.OnTick((now - lastTick) / 1000.0);
-	lastTick = now;
+	double dt = (now - lastTicks) / 1000.0;
+	lastTicks = now;
+	script.OnTick(dt);
 
 	for (const std::string& kickedPlayer : kickedPlayers) {
 		if (players.find(kickedPlayer) != players.end()) {
@@ -212,10 +213,10 @@ std::int32_t Scene::GetAxis(const std::string& playerName, const std::string& ax
 	}
 }
 
-void Scene::DrawSprite(const std::string& playerName, const std::string& texture, std::int32_t x, std::int32_t y, std::uint32_t scale, std::uint32_t animation) {
-	if (loadedTextures.find(texture) == loadedTextures.end()) {
-		return;
-	}
+bool Scene::IsTextureLoaded(const std::string& texture) {
+	return loadedTextures.find(texture) != loadedTextures.end();
+}
 
+void Scene::DrawSprite(const std::string& playerName, const std::string& texture, std::int32_t x, std::int32_t y, std::uint32_t scale, std::uint32_t animation) {
 	players[playerName].sprites.push_back({ x, y, scale, loadedTextures[texture], animation });
 }

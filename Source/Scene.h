@@ -35,6 +35,7 @@ namespace Hazard {
 		bool ButtonDown(const std::string& playerName, const std::string& button);
 		std::int32_t GetAxis(const std::string& playerName, const std::string& axis);
 
+		bool IsTextureLoaded(const std::string& texture);
 		void DrawSprite(const std::string& playerName, const std::string& texture, std::int32_t x, std::int32_t y, std::uint32_t scale, std::uint32_t animation);
 
 	private:
@@ -60,7 +61,7 @@ namespace Hazard {
 		std::unordered_map<std::string, Player> players;
 		std::vector<std::string> kickedPlayers;
 
-		std::uint64_t lastTick;
+		std::uint64_t lastTicks;
 	};
 }
 

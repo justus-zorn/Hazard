@@ -243,6 +243,9 @@ int Script::DrawSprite(lua_State* L) {
 		return luaL_error(L, "Player %s is not online", playerName.c_str());
 	}
 	std::string texture = luaL_checkstring(L, 2);
+	if (!scene->IsTextureLoaded(texture)) {
+		return luaL_error(L, "Texture %s is not loaded", texture.c_str());
+	}
 	std::int32_t x = static_cast<std::int32_t>(luaL_checknumber(L, 3));
 	std::int32_t y = static_cast<std::int32_t>(luaL_checknumber(L, 4));
 	std::uint32_t scale = static_cast<std::uint32_t>(luaL_checknumber(L, 5));

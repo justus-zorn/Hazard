@@ -153,7 +153,6 @@ void Window::SetTitle(const std::string& title) {
 
 void Window::SetSize(std::uint32_t width, std::uint32_t height) {
 	SDL_SetWindowSize(window, width, height);
-	SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 }
 
 void Window::FreeTextures() {
