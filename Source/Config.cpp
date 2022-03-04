@@ -27,6 +27,7 @@ void Config::Reload() {
 	windowTitle = "";
 	windowWidth = 800;
 	windowHeight = 800;
+	maxPlayers = 32;
 	port = 34344;
 
 	lua_newtable(L);
@@ -87,7 +88,13 @@ void Config::Reload() {
 
 		if (!lua_isnil(L, -1)) {
 			if (lua_isinteger(L, -1)) {
-				windowWidth = static_cast<std::uint32_t>(lua_tointeger(L, -1));
+				lua_Integer i = lua_tointeger(L, -1);
+				if (i > 0) {
+					windowWidth = static_cast<std::uint32_t>(i);
+				}
+				else {
+					std::cerr << "ERROR: Window.width must be greater than 0\n";
+				}
 			}
 			else {
 				std::cerr << "ERROR: Window.width is not an integer\n";
@@ -99,7 +106,13 @@ void Config::Reload() {
 
 		if (!lua_isnil(L, -1)) {
 			if (lua_isinteger(L, -1)) {
-				windowHeight = static_cast<std::uint32_t>(lua_tointeger(L, -1));
+				lua_Integer i = lua_tointeger(L, -1);
+				if (i > 0) {
+					windowHeight = static_cast<std::uint32_t>(i);
+				}
+				else {
+					std::cerr << "ERROR: Window.height must be greater than 0\n";
+				}
 			}
 			else {
 				std::cerr << "ERROR: Window.height is not an integer\n";
@@ -126,6 +139,27 @@ void Config::Reload() {
 					std::cerr << "ERROR: Port must be between 1 and 65535\n";
 				}
 			}
+			else {
+				std::cerr << "ERROR: Network.port is not an integer\n";
+			}
+		}
+
+		lua_pop(L, 1);
+		lua_getfield(L, -1, "max_players");
+		
+		if (!lua_isnil(L, -1)) {
+			if (lua_isinteger(L, -1)) {
+				lua_Integer i = lua_tointeger(L, -1);
+				if (i > 0) {
+					maxPlayers = static_cast<std::uint32_t>(i);
+				}
+				else {
+					std::cerr << "ERROR: Network.max_players must be greater than 0\n";
+				}
+			}
+			else {
+				std::cerr << "ERROR: Network.max_players is not an integer\n";
+			}
 		}
 	}
 }
@@ -144,6 +178,10 @@ std::uint32_t Config::WindowWidth() const {
 
 std::uint32_t Config::WindowHeight() const {
 	return windowHeight;
+}
+
+std::uint32_t Config::MaxPlayers() const {
+	return maxPlayers;
 }
 
 std::uint16_t Config::Port() const {

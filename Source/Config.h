@@ -24,6 +24,7 @@ namespace Hazard {
 		const std::string& WindowTitle() const;
 		std::uint32_t WindowWidth() const;
 		std::uint32_t WindowHeight() const;
+		std::uint32_t MaxPlayers() const;
 		std::uint16_t Port() const;
 
 	private:
@@ -33,6 +34,7 @@ namespace Hazard {
 		std::vector<std::string> textures;
 		std::string windowTitle;
 		std::uint32_t windowWidth, windowHeight;
+		std::uint32_t maxPlayers;
 		std::uint16_t port;
 	};
 }

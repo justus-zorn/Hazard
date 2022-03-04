@@ -19,7 +19,7 @@ Scene::Scene(std::string script, Config& config, std::uint16_t port) : config{ c
 		address.port = port;
 	}
 
-	host = enet_host_create(&address, 32, 3, 0, 0);
+	host = enet_host_create(&address, config.MaxPlayers(), 3, 0, 0);
 	if (!host) {
 		std::cerr << "ERROR: Could not create ENet host\n";
 		return;

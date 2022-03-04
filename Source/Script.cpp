@@ -272,7 +272,7 @@ int Script::GetTicks(lua_State* L) {
 bool Script::GetFunction(const std::string& function) {
 	lua_getglobal(L, "Game");
 	if (lua_isnil(L, -1)) {
-		std::cout << "ERROR: 'Game' is nil\n";
+		std::cerr << "ERROR: 'Game' is nil\n";
 		return false;
 	}
 	lua_getfield(L, -1, function.c_str());
