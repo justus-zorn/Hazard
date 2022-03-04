@@ -1,4 +1,6 @@
 # Hazard Engine Documentation
+Hazard is a completely data-driven game engine. Games are developed using Lua, a dynamically typed
+scripting language. To reload assets, press F5 while running in integrated mode.
 
 # Command line
 Hazard always executes the project in the current working directory.
@@ -13,7 +15,8 @@ specified in config.lua) and the name of the player. Player names must be unique
 
 # Configuration
 All configuration options must be contained in the file 'config.lua' at the root of the project
-directory.
+directory. All configuration options except for Config.port and Config.max_players can be reloaded
+in integrated mode.
 
 ## Config.textures
 Textures that must be loaded by the engine. All textures are contained in the subdirectory
@@ -40,7 +43,8 @@ took.
 'Game.on_login' is executed when a player tries to join a game. 'player' is the name of the player.
 The function must return a boolean. A return value of 'true' means that the player is allowed to
 join. When this function is called, the player is not yet registered, meaning that no API functions
-can be used with the player's name.
+can be used with the player's name. If this function is not defined, a return value of 'true' is
+assumed.
 ## Game.on_join(player)
 'Game.on_join' is executed after a player successfully joined a game. 'player' is the name of the
 player. In contrast to 'Game.on_login', when this function is called, the player is fully
