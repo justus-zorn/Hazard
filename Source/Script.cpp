@@ -240,7 +240,7 @@ int Script::DrawSprite(lua_State* L) {
 	}
 	std::int32_t x = static_cast<std::int32_t>(luaL_checknumber(L, 3));
 	std::int32_t y = static_cast<std::int32_t>(luaL_checknumber(L, 4));
-	std::uint32_t scale = static_cast<std::uint32_t>(luaL_checknumber(L, 5));
+	std::uint32_t scale = static_cast<std::uint32_t>(luaL_checknumber(L, 5)) / 2;
 	std::uint32_t animation = 0;
 	if (lua_gettop(L) > 5) {
 		std::uint32_t frameTime = static_cast<std::uint32_t>(luaL_checknumber(L, 6));
