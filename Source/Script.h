@@ -22,8 +22,8 @@ namespace Hazard {
 
 		void OnTick(double dt);
 		
-		bool OnPreLogin(const std::string& playerName);
-		void OnPostLogin(const std::string& playerName);
+		bool OnLogin(const std::string& playerName);
+		void OnJoin(const std::string& playerName);
 		void OnDisconnect(const std::string& playerName);
 
 		void OnKeyEvent(const std::string& playerName, const std::string& key, bool pressed);
@@ -40,8 +40,8 @@ namespace Hazard {
 		static int IsOnline(lua_State* L);
 		static int Kick(lua_State* L);
 
-		static int KeyDown(lua_State* L);
-		static int ButtonDown(lua_State* L);
+		static int IsKeyDown(lua_State* L);
+		static int IsButtonDown(lua_State* L);
 		static int GetAxis(lua_State* L);
 
 		static int DrawSprite(lua_State* L);

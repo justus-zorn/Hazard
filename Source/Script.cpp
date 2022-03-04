@@ -32,34 +32,34 @@ void Script::Reload() {
 
 	lua_pushlightuserdata(L, scene);
 	lua_pushcclosure(L, GetPlayers, 1);
-	lua_setglobal(L, "GetPlayers");
+	lua_setglobal(L, "get_players");
 
 	lua_pushlightuserdata(L, scene);
 	lua_pushcclosure(L, IsOnline, 1);
-	lua_setglobal(L, "IsOnline");
+	lua_setglobal(L, "is_online");
 
 	lua_pushlightuserdata(L, scene);
 	lua_pushcclosure(L, Kick, 1);
-	lua_setglobal(L, "Kick");
+	lua_setglobal(L, "kick");
 
 	lua_pushlightuserdata(L, scene);
-	lua_pushcclosure(L, KeyDown, 1);
-	lua_setglobal(L, "KeyDown");
+	lua_pushcclosure(L, IsKeyDown, 1);
+	lua_setglobal(L, "is_key_down");
 
 	lua_pushlightuserdata(L, scene);
-	lua_pushcclosure(L, ButtonDown, 1);
-	lua_setglobal(L, "ButtonDown");
+	lua_pushcclosure(L, IsButtonDown, 1);
+	lua_setglobal(L, "is_button_down");
 
 	lua_pushlightuserdata(L, scene);
 	lua_pushcclosure(L, GetAxis, 1);
-	lua_setglobal(L, "GetAxis");
+	lua_setglobal(L, "get_axis");
 
 	lua_pushlightuserdata(L, scene);
 	lua_pushcclosure(L, DrawSprite, 1);
-	lua_setglobal(L, "DrawSprite");
+	lua_setglobal(L, "draw_sprite");
 
 	lua_pushcclosure(L, GetTicks, 0);
-	lua_setglobal(L, "GetTicks");
+	lua_setglobal(L, "get_ticks");
 
 	if (luaL_dofile(L, path.c_str()) != LUA_OK) {
 		std::cerr << "ERROR: Error while loading Lua script: " << lua_tostring(L, -1) << '\n';
@@ -67,34 +67,26 @@ void Script::Reload() {
 }
 
 void Script::OnTick(double dt) {
-	lua_getglobal(L, "Game");
-	if (!lua_isnil(L, -1)) {
-		lua_getfield(L, -1, "OnTick");
-
-		if (!lua_isnil(L, -1)) {
-			lua_pushnumber(L, dt);
-			if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
-				std::cerr << "ERROR: Error while calling Game.OnTick: " << lua_tostring(L, -1) << '\n';
-			}
+	if (GetFunction("on_tick")) {
+		lua_pushnumber(L, dt);
+		if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+			std::cerr << "ERROR: Error while calling Game.on_tick: " << lua_tostring(L, -1) << '\n';
 		}
-	}
-	else {
-		std::cerr << "ERROR: Error while calling Game.OnTick: 'Game' is nil\n";
 	}
 	
 	lua_settop(L, 0);
 }
 
-bool Script::OnPreLogin(const std::string& playerName) {
+bool Script::OnLogin(const std::string& playerName) {
 	bool result = false;
-	if (GetFunction("OnPreLogin")) {
+	if (GetFunction("on_login")) {
 		lua_pushstring(L, playerName.c_str());
 		if (lua_pcall(L, 1, 1, 0) != LUA_OK) {
-			std::cerr << "ERROR: Error while calling Game.OnPreLogin: " << lua_tostring(L, -1) << '\n';
+			std::cerr << "ERROR: Error while calling Game.on_login: " << lua_tostring(L, -1) << '\n';
 		}
 		else {
 			if (!lua_isboolean(L, -1)) {
-				std::cerr << "ERROR: Error while calling Game.OnPreLogin: Function must return a boolean\n";
+				std::cerr << "ERROR: Error while calling Game.on_login: Function must return a boolean\n";
 			}
 			else {
 				result = lua_toboolean(L, -1);
@@ -109,11 +101,11 @@ bool Script::OnPreLogin(const std::string& playerName) {
 	return result;
 }
 
-void Script::OnPostLogin(const std::string& playerName) {
-	if (GetFunction("OnPostLogin")) {
+void Script::OnJoin(const std::string& playerName) {
+	if (GetFunction("on_join")) {
 		lua_pushstring(L, playerName.c_str());
 		if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
-			std::cerr << "ERROR: Error while calling Game.OnPostLogin: " << lua_tostring(L, -1) << '\n';
+			std::cerr << "ERROR: Error while calling Game.on_join: " << lua_tostring(L, -1) << '\n';
 		}
 	}
 
@@ -121,10 +113,10 @@ void Script::OnPostLogin(const std::string& playerName) {
 }
 
 void Script::OnDisconnect(const std::string& playerName) {
-	if (GetFunction("OnDisconnect")) {
+	if (GetFunction("on_disconnect")) {
 		lua_pushstring(L, playerName.c_str());
 		if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
-			std::cerr << "ERROR: Error while calling Game.OnDisconnect: " << lua_tostring(L, -1) << '\n';
+			std::cerr << "ERROR: Error while calling Game.on_disconnect: " << lua_tostring(L, -1) << '\n';
 		}
 	}
 
@@ -132,12 +124,12 @@ void Script::OnDisconnect(const std::string& playerName) {
 }
 
 void Script::OnKeyEvent(const std::string& playerName, const std::string& key, bool pressed) {
-	if (GetFunction("OnKeyEvent")) {
+	if (GetFunction("on_key_event")) {
 		lua_pushstring(L, playerName.c_str());
 		lua_pushstring(L, key.c_str());
 		lua_pushboolean(L, pressed);
 		if (lua_pcall(L, 3, 0, 0) != LUA_OK) {
-			std::cerr << "ERROR: Error while calling Game.OnKeyEvent: " << lua_tostring(L, -1) << '\n';
+			std::cerr << "ERROR: Error while calling Game.on_key_event: " << lua_tostring(L, -1) << '\n';
 		}
 	}
 
@@ -145,12 +137,12 @@ void Script::OnKeyEvent(const std::string& playerName, const std::string& key, b
 }
 
 void Script::OnButtonEvent(const std::string& playerName, const std::string& button, bool pressed) {
-	if (GetFunction("OnButtonEvent")) {
+	if (GetFunction("on_button_event")) {
 		lua_pushstring(L, playerName.c_str());
 		lua_pushstring(L, button.c_str());
 		lua_pushboolean(L, pressed);
 		if (lua_pcall(L, 3, 0, 0) != LUA_OK) {
-			std::cerr << "ERROR: Error while calling Game.OnButtonEvent: " << lua_tostring(L, -1) << '\n';
+			std::cerr << "ERROR: Error while calling Game.on_button_event: " << lua_tostring(L, -1) << '\n';
 		}
 	}
 
@@ -158,12 +150,12 @@ void Script::OnButtonEvent(const std::string& playerName, const std::string& but
 }
 
 void Script::OnAxisEvent(const std::string& playerName, const std::string& axis, std::int32_t state) {
-	if (GetFunction("OnAxisEvent")) {
+	if (GetFunction("on_axis_event")) {
 		lua_pushstring(L, playerName.c_str());
 		lua_pushstring(L, axis.c_str());
 		lua_pushinteger(L, state);
 		if (lua_pcall(L, 3, 0, 0) != LUA_OK) {
-			std::cerr << "ERROR: Error while calling Game.OnAxisEvent: " << lua_tostring(L, -1) << '\n';
+			std::cerr << "ERROR: Error while calling Game.on_axis_event: " << lua_tostring(L, -1) << '\n';
 		}
 	}
 
@@ -203,25 +195,25 @@ int Script::Kick(lua_State* L) {
 	return 0;
 }
 
-int Script::KeyDown(lua_State* L) {
+int Script::IsKeyDown(lua_State* L) {
 	Scene* scene = reinterpret_cast<Scene*>(lua_touserdata(L, lua_upvalueindex(1)));
 	std::string playerName = luaL_checkstring(L, 1);
 	if (!scene->IsOnline(playerName)) {
 		return luaL_error(L, "Player %s is not online", playerName.c_str());
 	}
 	std::string key = luaL_checkstring(L, 2);
-	lua_pushboolean(L, scene->KeyDown(playerName, key));
+	lua_pushboolean(L, scene->IsKeyDown(playerName, key));
 	return 1;
 }
 
-int Script::ButtonDown(lua_State* L) {
+int Script::IsButtonDown(lua_State* L) {
 	Scene* scene = reinterpret_cast<Scene*>(lua_touserdata(L, lua_upvalueindex(1)));
 	std::string playerName = luaL_checkstring(L, 1);
 	if (!scene->IsOnline(playerName)) {
 		return luaL_error(L, "Player %s is not online", playerName.c_str());
 	}
 	std::string button = luaL_checkstring(L, 2);
-	lua_pushboolean(L, scene->ButtonDown(playerName, button));
+	lua_pushboolean(L, scene->IsButtonDown(playerName, button));
 	return 1;
 }
 

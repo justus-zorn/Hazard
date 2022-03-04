@@ -31,8 +31,8 @@ namespace Hazard {
 		bool IsOnline(const std::string& playerName);
 		void Kick(const std::string& playerName);
 
-		bool KeyDown(const std::string& playerName, const std::string& key);
-		bool ButtonDown(const std::string& playerName, const std::string& button);
+		bool IsKeyDown(const std::string& playerName, const std::string& key);
+		bool IsButtonDown(const std::string& playerName, const std::string& button);
 		std::int32_t GetAxis(const std::string& playerName, const std::string& axis);
 
 		bool IsTextureLoaded(const std::string& texture);

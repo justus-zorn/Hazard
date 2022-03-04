@@ -78,7 +78,7 @@ void Scene::Update() {
 				ReadPacket packet(event.packet);
 				std::string playerName = packet.ReadString();
 
-				if (players.find(playerName) != players.end() || !script.OnPreLogin(playerName)) {
+				if (players.find(playerName) != players.end() || !script.OnLogin(playerName)) {
 					enet_peer_disconnect(event.peer, 0);
 				}
 				else {
@@ -88,7 +88,7 @@ void Scene::Update() {
 
 					event.peer->data = &player;
 
-					script.OnPostLogin(playerName);
+					script.OnJoin(playerName);
 				}
 			}
 			else if (event.channelID == 2) {
@@ -193,11 +193,11 @@ void Scene::Kick(const std::string& playerName) {
 	kickedPlayers.push_back(playerName);
 }
 
-bool Scene::KeyDown(const std::string& playerName, const std::string& key) {
+bool Scene::IsKeyDown(const std::string& playerName, const std::string& key) {
 	return players[playerName].keys[key];
 }
 
-bool Scene::ButtonDown(const std::string& playerName, const std::string& button) {
+bool Scene::IsButtonDown(const std::string& playerName, const std::string& button) {
 	return players[playerName].buttons[button];
 }
 
