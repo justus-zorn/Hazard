@@ -27,6 +27,8 @@ The title of the game window.
 The width (in pixels) of the game window. Default is 800.
 ## Config.height
 The height (in pixels) of the game window. Default is 800.
+## Config.font_size
+The size (in points) to use for text rendering.
 ## Config.port
 The UDP port to use for networking. Default is 34344.
 ## Config.max_players
@@ -66,6 +68,9 @@ released ('false').
 'axis' is the name of the movement direction ('Mouse X' or 'Mouse Y'), and 'state' is a signed
 integer value indicating the current position of the mouse on the screen (in pixels). The center of
 the screen is at (0, 0).
+## Game.on_text_input(player, composition)
+'Game.on_text_input' is executed when a player confirms a text composition using the return key.
+'player' is the player's name, and 'composition' is the text the player entered.
 
 # Functions
 ## get_players()
@@ -83,6 +88,9 @@ their mouse.
 ## get_axis(player, axis)
 'get_axis' returns the current state of 'axis' for 'player'. Valid values for axis are 'Mouse X'
 and 'Mouse Y'.
+## get_composition(player)
+'get_composition' returns the current text composition for 'player'. After the 'Game.on_text_input'
+function is called, the text composition is reset.
 ## draw_sprite(player, texture, x, y, size, frame_length?, animation_start?)
 'draw_sprite' draws a square texture on the screen of the specified player. 'x' and 'y' are screen
 coordinates (in pixels), where (0, 0) is the center of the screen. 'size' is the size of the
@@ -90,5 +98,11 @@ sprite (in pixels), which is independent of the actual size of the texture. 'fra
 optional and specifies how long every frame of an animation should take (in milliseconds). By
 default, no animation is played. 'animation_start' is also optional and specifies the starting
 time of the animation (in ticks since the start of the game). The default value is 0.
+## draw_text(player, text, x, y, r, g, b, line_length?)
+'draw_text' draws a text on the screen of the specified player. 'x' and 'y' are screen coordinates
+(in pixels), where (0, 0) is the center of the screen. 'r', 'g' and 'b' are the red, green and blue
+color values between 0 and 255. 'line_length' is optional and specifies the maximum length of a
+line. If a line is longer, it is wrapped around to the next line. The default value is 0, meaning
+that no line wrapping occurs (not even at the edge of the screen).
 ## get_ticks()
 'get_ticks' returns the number of milliseconds since the start of the game.
