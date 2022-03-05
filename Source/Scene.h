@@ -37,6 +37,7 @@ namespace Hazard {
 
 		bool IsTextureLoaded(const std::string& texture);
 		void DrawSprite(const std::string& playerName, const std::string& texture, std::int32_t x, std::int32_t y, std::uint32_t scale, std::uint32_t animation);
+		void DrawTextSprite(const std::string& playerName, const std::string& text, std::int32_t x, std::int32_t y, std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint32_t lineLength);
 
 	private:
 		struct Player {

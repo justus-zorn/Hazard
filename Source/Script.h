@@ -45,6 +45,7 @@ namespace Hazard {
 		static int GetAxis(lua_State* L);
 
 		static int DrawSprite(lua_State* L);
+		static int DrawTextSprite(lua_State* L);
 
 		static int GetTicks(lua_State* L);
 

@@ -8,7 +8,7 @@
 
 using namespace Hazard;
 
-Window::Window(const std::string& title, std::uint32_t width, std::uint32_t height) {
+Window::Window(const std::string& title, std::uint32_t width, std::uint32_t height, std::uint32_t fontSize) {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		std::cerr << "ERROR: Could not initialize SDL: " << SDL_GetError() << '\n';
 		return;
@@ -31,12 +31,25 @@ Window::Window(const std::string& title, std::uint32_t width, std::uint32_t heig
 		std::cerr << "ERROR: Could not load SDL_image: " << IMG_GetError() << '\n';
 	}
 
+	if (TTF_Init() < 0) {
+		std::cerr << "ERROR: Could not initialize SDL_ttf: " << TTF_GetError() << '\n';
+	}
+	else {
+		font = TTF_OpenFont("font.ttf", fontSize);
+		if (!font) {
+			std::cerr << "ERROR: Could not load 'font.ttf': " << TTF_GetError() << '\n';
+		}
+	}
+
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 }
 
 Window::~Window() {
 	FreeTextures();
+
+	TTF_CloseFont(font);
+	TTF_Quit();
 
 	IMG_Quit();
 
@@ -115,32 +128,63 @@ void Window::LoadTextures(const std::vector<std::string>& textures) {
 }
 
 void Window::DrawSprite(const Sprite& sprite) {
-	if (sprite.texture >= loadedTextures.size() || !loadedTextures[sprite.texture]) {
-		return;
-	}
-
-	SDL_Texture* texture = loadedTextures[sprite.texture];
-	int textureWidth, textureHeight;
-
-	SDL_QueryTexture(texture, nullptr, nullptr, &textureWidth, &textureHeight);
-
 	int windowWidth, windowHeight;
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
-	std::uint32_t animation = sprite.animation % (textureWidth / textureHeight);
-	SDL_Rect src;
-	src.x = textureHeight * animation;
-	src.y = 0;
-	src.w = textureHeight;
-	src.h = textureHeight;
+	if (sprite.isText) {
+		if (!font) {
+			return;
+		}
+		SDL_Surface* surface = TTF_RenderText_Blended_Wrapped(font, sprite.text.c_str(), { sprite.r, sprite.g, sprite.b }, sprite.scale);
+		if (!surface) {
+			std::cerr << "ERROR: Text rendering failed: " << TTF_GetError() << '\n';
+			return;
+		}
+		SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
+		SDL_FreeSurface(surface);
+		if (!texture) {
+			std::cerr << "ERROR: Text rendering failed: " << SDL_GetError() << '\n';
+			return;
+		}
 
-	SDL_Rect dst;
-	dst.x = (windowWidth / 2) + (sprite.x - sprite.scale);
-	dst.y = (windowHeight / 2) - (sprite.y + sprite.scale);
-	dst.w = sprite.scale * 2;
-	dst.h = sprite.scale * 2;
+		int textureWidth, textureHeight;
+		SDL_QueryTexture(texture, nullptr, nullptr, &textureWidth, &textureHeight);
 
-	SDL_RenderCopy(renderer, texture, &src, &dst);
+		SDL_Rect dst;
+		dst.x = (windowWidth / 2) + (sprite.x - textureWidth / 2);
+		dst.y = (windowHeight / 2) - (sprite.y + textureHeight / 2);
+		dst.w = textureWidth;
+		dst.h = textureHeight;
+
+		SDL_RenderCopy(renderer, texture, nullptr, &dst);
+
+		SDL_DestroyTexture(texture);
+	}
+	else {
+		if (sprite.texture >= loadedTextures.size() || !loadedTextures[sprite.texture]) {
+			return;
+		}
+
+		SDL_Texture* texture = loadedTextures[sprite.texture];
+		int textureWidth, textureHeight;
+
+		SDL_QueryTexture(texture, nullptr, nullptr, &textureWidth, &textureHeight);
+
+		std::uint32_t animation = sprite.animation % (textureWidth / textureHeight);
+		SDL_Rect src;
+		src.x = textureHeight * animation;
+		src.y = 0;
+		src.w = textureHeight;
+		src.h = textureHeight;
+
+		SDL_Rect dst;
+		dst.x = (windowWidth / 2) + (sprite.x - sprite.scale);
+		dst.y = (windowHeight / 2) - (sprite.y + sprite.scale);
+		dst.w = sprite.scale * 2;
+		dst.h = sprite.scale * 2;
+
+		SDL_RenderCopy(renderer, texture, &src, &dst);
+	}
 }
 
 const Input& Window::GetInput() const {
@@ -153,6 +197,14 @@ void Window::SetTitle(const std::string& title) {
 
 void Window::SetSize(std::uint32_t width, std::uint32_t height) {
 	SDL_SetWindowSize(window, width, height);
+}
+
+void Window::ReloadFont(std::uint32_t fontSize) {
+	TTF_CloseFont(font);
+	font = TTF_OpenFont("font.ttf", fontSize);
+	if (!font) {
+		std::cerr << "ERROR: Could not load 'font.ttf': " << TTF_GetError() << '\n';
+	}
 }
 
 void Window::FreeTextures() {

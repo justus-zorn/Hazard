@@ -27,8 +27,9 @@ void Config::Reload() {
 	windowTitle = "";
 	windowWidth = 800;
 	windowHeight = 800;
-	maxPlayers = 32;
+	fontSize = 24;
 	port = 34344;
+	maxPlayers = 32;
 
 	lua_newtable(L);
 	lua_setglobal(L, "Config");
@@ -107,6 +108,23 @@ void Config::Reload() {
 	}
 
 	lua_pop(L, 1);
+	lua_getfield(L, -1, "font_size");
+	if (!lua_isnil(L, -1)) {
+		if (lua_isinteger(L, -1)) {
+			lua_Integer i = lua_tointeger(L, -1);
+			if (i > 0) {
+				fontSize = static_cast<std::uint32_t>(i);
+			}
+			else {
+				std::cerr << "ERROR: Config.font_size must be greater than 0\n";
+			}
+		}
+		else {
+			std::cerr << "ERROR: Config.font_size is not an integer\n";
+		}
+	}
+
+	lua_pop(L, 1);
 	lua_getfield(L, -1, "port");
 	if (!lua_isnil(L, -1)) {
 		if (lua_isinteger(L, -1)) {
@@ -160,10 +178,14 @@ std::uint32_t Config::WindowHeight() const {
 	return windowHeight;
 }
 
-std::uint32_t Config::MaxPlayers() const {
-	return maxPlayers;
+std::uint32_t Config::FontSize() const {
+	return fontSize;
 }
 
 std::uint16_t Config::Port() const {
 	return port;
+}
+
+std::uint32_t Config::MaxPlayers() const {
+	return maxPlayers;
 }

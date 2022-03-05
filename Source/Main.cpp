@@ -19,7 +19,7 @@ static std::atomic<bool> shouldReload = false;
 void RunClient(const std::string& player, const std::string& address) {
 	Config config("config.lua");
 	Client client(player, address, config.Port());
-	Window window(config.WindowTitle(), config.WindowWidth(), config.WindowHeight());
+	Window window(config.WindowTitle(), config.WindowWidth(), config.WindowHeight(), config.FontSize());
 
 	window.LoadTextures(config.GetTextures());
 	while (!window.ShouldClose()) {
@@ -28,6 +28,7 @@ void RunClient(const std::string& player, const std::string& address) {
 			config.Reload();
 			window.SetTitle(config.WindowTitle());
 			window.SetSize(config.WindowWidth(), config.WindowHeight());
+			window.ReloadFont(config.FontSize());
 			window.LoadTextures(config.GetTextures());
 		}
 		if (!client.Update(window.GetInput())) {

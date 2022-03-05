@@ -4,12 +4,17 @@
 #define Hazard_Common_h
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace Hazard {
 	struct Sprite {
+		std::string text;
 		std::int32_t x, y;
-		std::uint32_t scale, texture, animation;
+		std::uint32_t scale;
+		std::uint32_t texture, animation;
+		bool isText;
+		std::uint8_t r, g, b;
 	};
 
 	struct KeyboardInput {

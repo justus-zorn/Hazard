@@ -157,8 +157,18 @@ void Scene::Update() {
 			statePacket.Write32(sprite.x);
 			statePacket.Write32(sprite.y);
 			statePacket.Write32(sprite.scale);
-			statePacket.Write32(sprite.texture);
-			statePacket.Write32(sprite.animation);
+			if (sprite.isText) {
+				statePacket.Write8(1);
+				statePacket.Write8(sprite.r);
+				statePacket.Write8(sprite.g);
+				statePacket.Write8(sprite.b);
+				statePacket.WriteString(sprite.text);
+			}
+			else {
+				statePacket.Write8(0);
+				statePacket.Write32(sprite.texture);
+				statePacket.Write32(sprite.animation);
+			}
 		}
 		enet_peer_send(pair.second.peer, 1, statePacket.GetPacket(false));
 		pair.second.sprites.clear();
@@ -218,5 +228,27 @@ bool Scene::IsTextureLoaded(const std::string& texture) {
 }
 
 void Scene::DrawSprite(const std::string& playerName, const std::string& texture, std::int32_t x, std::int32_t y, std::uint32_t scale, std::uint32_t animation) {
-	players[playerName].sprites.push_back({ x, y, scale, loadedTextures[texture], animation });
+	Sprite sprite;
+	sprite.isText = false;
+	sprite.x = x;
+	sprite.y = y;
+	sprite.scale = scale;
+	sprite.texture = loadedTextures[texture];
+	sprite.animation = animation;
+
+	players[playerName].sprites.push_back(sprite);
+}
+
+void Scene::DrawTextSprite(const std::string& playerName, const std::string& text, std::int32_t x, std::int32_t y, std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint32_t lineLength) {
+	Sprite sprite;
+	sprite.isText = true;
+	sprite.x = x;
+	sprite.y = y;
+	sprite.scale = lineLength;
+	sprite.text = text;
+	sprite.r = r;
+	sprite.g = g;
+	sprite.b = b;
+
+	players[playerName].sprites.push_back(sprite);
 }

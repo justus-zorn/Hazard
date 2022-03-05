@@ -58,6 +58,10 @@ void Script::Reload() {
 	lua_pushcclosure(L, DrawSprite, 1);
 	lua_setglobal(L, "draw_sprite");
 
+	lua_pushlightuserdata(L, scene);
+	lua_pushcclosure(L, DrawTextSprite, 1);
+	lua_setglobal(L, "draw_text");
+
 	lua_pushcclosure(L, GetTicks, 0);
 	lua_setglobal(L, "get_ticks");
 
@@ -252,6 +256,28 @@ int Script::DrawSprite(lua_State* L) {
 	}
 
 	scene->DrawSprite(playerName, texture, x, y, scale, animation);
+
+	return 0;
+}
+
+int Script::DrawTextSprite(lua_State* L) {
+	Scene* scene = reinterpret_cast<Scene*>(lua_touserdata(L, lua_upvalueindex(1)));
+	std::string playerName = luaL_checkstring(L, 1);
+	if (!scene->IsOnline(playerName)) {
+		return luaL_error(L, "Player %s is not online", playerName.c_str());
+	}
+	std::string text = luaL_checkstring(L, 2);
+	std::int32_t x = static_cast<std::int32_t>(luaL_checknumber(L, 3));
+	std::int32_t y = static_cast<std::int32_t>(luaL_checknumber(L, 4));
+	std::uint8_t r = static_cast<std::uint8_t>(luaL_checknumber(L, 5));
+	std::uint8_t g = static_cast<std::uint8_t>(luaL_checknumber(L, 6));
+	std::uint8_t b = static_cast<std::uint8_t>(luaL_checknumber(L, 7));
+	std::uint32_t lineLength = 0;
+	if (lua_gettop(L) > 7) {
+		lineLength = static_cast<std::uint32_t>(luaL_checknumber(L, 8));
+	}
+
+	scene->DrawTextSprite(playerName, text, x, y, r, g, b, lineLength);
 
 	return 0;
 }

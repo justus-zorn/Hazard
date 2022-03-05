@@ -68,11 +68,26 @@ bool Client::Update(const Input& input) {
 				std::uint32_t spriteCount = packet.Read32();
 				sprites.resize(spriteCount);
 				for (std::uint32_t i = 0; i < spriteCount; ++i) {
-					sprites[i].x = packet.Read32();
-					sprites[i].y = packet.Read32();
-					sprites[i].scale = packet.Read32();
-					sprites[i].texture = packet.Read32();
-					sprites[i].animation = packet.Read32();
+					Sprite& sprite = sprites[i];
+
+					sprite.x = packet.Read32();
+					sprite.y = packet.Read32();
+					sprite.scale = packet.Read32();
+
+					if (packet.Read8()) {
+						// Text
+						sprite.isText = true;
+						sprite.r = packet.Read8();
+						sprite.g = packet.Read8();
+						sprite.b = packet.Read8();
+						sprite.text = packet.ReadString();
+					}
+					else {
+						// Sprite
+						sprite.isText = false;
+						sprite.texture = packet.Read32();
+						sprite.animation = packet.Read32();
+					}
 				}
 			}
 			enet_packet_destroy(event.packet);
