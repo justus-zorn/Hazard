@@ -43,6 +43,7 @@ namespace Hazard {
 		bool shouldClose = false;
 
 		std::vector<SDL_Texture*> loadedTextures;
+		std::string composition;
 		Input input;
 
 		void FreeTextures();

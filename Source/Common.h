@@ -32,6 +32,8 @@ namespace Hazard {
 		std::vector<ButtonInput> buttonInputs;
 		std::int32_t mouseMotionX = 0, mouseMotionY = 0;
 		bool mouseMotion = false;
+		std::string composition;
+		bool textInput = false;
 
 		void Clear();
 	};

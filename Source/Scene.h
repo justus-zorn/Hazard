@@ -34,6 +34,7 @@ namespace Hazard {
 		bool IsKeyDown(const std::string& playerName, const std::string& key);
 		bool IsButtonDown(const std::string& playerName, const std::string& button);
 		std::int32_t GetAxis(const std::string& playerName, const std::string& axis);
+		const std::string& GetComposition(const std::string& playerName);
 
 		bool IsTextureLoaded(const std::string& texture);
 		void DrawSprite(const std::string& playerName, const std::string& texture, std::int32_t x, std::int32_t y, std::uint32_t scale, std::uint32_t animation);
@@ -46,6 +47,7 @@ namespace Hazard {
 
 			std::vector<Sprite> sprites;
 
+			std::string composition;
 			std::unordered_map<std::string, bool> keys;
 			std::unordered_map<std::string, bool> buttons;
 

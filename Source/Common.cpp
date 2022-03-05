@@ -8,4 +8,6 @@ void Input::Clear() {
 	keyboardInputs.clear();
 	buttonInputs.clear();
 	mouseMotion = false;
+	composition.clear();
+	textInput = false;
 }

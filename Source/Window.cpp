@@ -43,9 +43,13 @@ Window::Window(const std::string& title, std::uint32_t width, std::uint32_t heig
 
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
+
+	SDL_StartTextInput();
 }
 
 Window::~Window() {
+	SDL_StopTextInput();
+
 	FreeTextures();
 
 	TTF_CloseFont(font);
@@ -77,6 +81,17 @@ bool Window::Update() {
 			if (event.key.keysym.sym == SDLK_F5) {
 				shouldReload = true;
 			}
+			else if (event.key.keysym.sym == SDLK_BACKSPACE) {
+				while (composition.length() > 0 && (composition[composition.length() - 1] & 0xC0) == 0x80) {
+					composition.erase(composition.end() - 1);
+				}
+				if (composition.length() > 0) {
+					composition.erase(composition.end() - 1);
+				}
+			}
+			else if (event.key.keysym.sym == SDLK_RETURN) {
+				input.textInput = true;
+			}
 			input.keyboardInputs.push_back({ event.key.keysym.sym, true });
 			break;
 		case SDL_KEYUP:
@@ -93,7 +108,15 @@ bool Window::Update() {
 			input.mouseMotionY = windowHeight / 2 - event.motion.y;
 			input.mouseMotion = true;
 			break;
+		case SDL_TEXTINPUT:
+			composition += event.text.text;
+			break;
 		}
+	}
+
+	input.composition = composition;
+	if (input.textInput) {
+		composition.clear();
 	}
 
 	return shouldReload;
@@ -132,10 +155,10 @@ void Window::DrawSprite(const Sprite& sprite) {
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
 	if (sprite.isText) {
-		if (!font) {
+		if (!font || sprite.text.length() == 0) {
 			return;
 		}
-		SDL_Surface* surface = TTF_RenderText_Blended_Wrapped(font, sprite.text.c_str(), { sprite.r, sprite.g, sprite.b }, sprite.scale);
+		SDL_Surface* surface = TTF_RenderUTF8_Blended_Wrapped(font, sprite.text.c_str(), { sprite.r, sprite.g, sprite.b }, sprite.scale);
 		if (!surface) {
 			std::cerr << "ERROR: Text rendering failed: " << TTF_GetError() << '\n';
 			return;

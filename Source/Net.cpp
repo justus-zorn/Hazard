@@ -21,9 +21,11 @@ void WritePacket::Write32(std::uint32_t value) {
 
 void WritePacket::WriteString(const std::string& value) {
 	Write32(static_cast<std::uint32_t>(value.length()));
-	std::uint32_t start = static_cast<std::uint32_t>(data.size());
-	data.resize(start + value.size());
-	std::memcpy(&data[start], value.data(), value.length());
+	if (value.length() > 0) {
+		std::uint32_t start = static_cast<std::uint32_t>(data.size());
+		data.resize(start + value.length());
+		std::memcpy(&data[start], value.data(), value.length());
+	}
 }
 
 ENetPacket* WritePacket::GetPacket(bool reliable) {
@@ -56,15 +58,17 @@ std::uint32_t ReadPacket::Read32() {
 
 std::string ReadPacket::ReadString() {
 	std::uint32_t stringLength = Read32();
-	if (stringLength <= dataLength && index <= dataLength - stringLength) {
-		std::string value;
-		value.resize(stringLength);
-		std::memcpy(&value[0], data + index, stringLength);
-		index += stringLength;
-		return value;
+	if (stringLength > 0) {
+		if (stringLength <= dataLength && index <= dataLength - stringLength) {
+			std::string value;
+			value.resize(stringLength);
+			std::memcpy(&value[0], data + index, stringLength);
+			index += stringLength;
+			return value;
+		}
+		else {
+			std::cerr << "ERROR: Detected invalid packet\n";
+		}
 	}
-	else {
-		std::cerr << "ERROR: Detected invalid packet\n";
-		return "";
-	}
+	return "";
 }

@@ -131,6 +131,10 @@ void Scene::Update() {
 					script.OnAxisEvent(player->playerName, "Mouse X", mouseMotionX);
 					script.OnAxisEvent(player->playerName, "Mouse Y", mouseMotionY);
 				}
+				players[player->playerName].composition = packet.ReadString();
+				if (packet.Read8()) {
+					script.OnTextInput(player->playerName, players[player->playerName].composition);
+				}
 			}
 			enet_packet_destroy(event.packet);
 			break;
@@ -221,6 +225,10 @@ std::int32_t Scene::GetAxis(const std::string& playerName, const std::string& ax
 	else {
 		return 0;
 	}
+}
+
+const std::string& Scene::GetComposition(const std::string& playerName) {
+	return players[playerName].composition;
 }
 
 bool Scene::IsTextureLoaded(const std::string& texture) {

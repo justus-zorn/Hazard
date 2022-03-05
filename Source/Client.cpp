@@ -109,6 +109,8 @@ bool Client::Update(const Input& input) {
 	inputPacket.Write32(input.mouseMotionX);
 	inputPacket.Write32(input.mouseMotionY);
 	inputPacket.Write8(input.mouseMotion);
+	inputPacket.WriteString(input.composition);
+	inputPacket.Write8(input.textInput);
 
 	enet_peer_send(server, 2, inputPacket.GetPacket(true));
 
