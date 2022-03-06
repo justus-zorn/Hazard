@@ -33,6 +33,9 @@ The size (in points) to use for text rendering.
 The UDP port to use for networking. Default is 34344.
 ## Config.max_players
 The maximum number of players that can be in a game at the same time. Default is 32.
+## Config.channels
+The number of audio channels to allocate. Only one sound can be played per audio channel at a time.
+Valid channel IDs are 0 to channels - 1. The default value is 32.
 
 # Callbacks
 All callback functions must be exported by the file 'main.lua' at the root of the project
@@ -104,5 +107,14 @@ time of the animation (in ticks since the start of the game). The default value 
 color values between 0 and 255. 'line_length' is optional and specifies the maximum length of a
 line. If a line is longer, it is wrapped around to the next line. The default value is 0, meaning
 that no line wrapping occurs (not even at the edge of the screen).
+## play_sound(player, sound, volume, channel?)
+Starts playing 'sound' for 'player'. 'volume' must be between 0 and 128. The sound will be played
+on 'channel', overwriting any previously playing sounds on that channel. If channel is not given,
+the sound will be played without the option to stop it.
+## stop_sound(player, channel)
+Stops the sound playing on 'channel' for 'player'. This can only be used if a channel was assigned
+with 'play_sound'.
+## stop_all_sounds(player)
+Stops all sounds for 'player', including those that were not assigned a channel with 'play_sound'.
 ## get_ticks()
 'get_ticks' returns the number of milliseconds since the start of the game.

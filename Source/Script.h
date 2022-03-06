@@ -49,6 +49,10 @@ namespace Hazard {
 		static int DrawSprite(lua_State* L);
 		static int DrawTextSprite(lua_State* L);
 
+		static int Play(lua_State* L);
+		static int Stop(lua_State* L);
+		static int StopAll(lua_State* L);
+
 		static int GetTicks(lua_State* L);
 
 		bool GetFunction(const std::string& function);

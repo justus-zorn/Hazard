@@ -40,12 +40,20 @@ namespace Hazard {
 		void DrawSprite(const std::string& playerName, const std::string& texture, std::int32_t x, std::int32_t y, std::uint32_t scale, std::uint32_t animation);
 		void DrawTextSprite(const std::string& playerName, const std::string& text, std::int32_t x, std::int32_t y, std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint32_t lineLength);
 
+		bool IsSoundLoaded(const std::string& sound);
+		bool IsChannelValid(std::uint16_t channel);
+		void Play(const std::string& playerName, const std::string& sound, std::uint8_t volume, std::uint16_t channel);
+		void PlayAny(const std::string& playerName, const std::string& sound, std::uint8_t volume);
+		void Stop(const std::string& playerName, std::uint16_t channel);
+		void StopAll(const std::string& playerName);
+
 	private:
 		struct Player {
 			std::string playerName;
 			ENetPeer* peer;
 
 			std::vector<Sprite> sprites;
+			std::vector<AudioCommand> audioCommands;
 
 			std::string composition;
 			std::unordered_map<std::string, bool> keys;
@@ -60,6 +68,7 @@ namespace Hazard {
 		Script script;
 
 		std::unordered_map<std::string, std::uint32_t> loadedTextures;
+		std::unordered_map<std::string, std::uint32_t> loadedSounds;
 
 		std::unordered_map<std::string, Player> players;
 		std::vector<std::string> kickedPlayers;

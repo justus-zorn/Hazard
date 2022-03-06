@@ -66,6 +66,18 @@ void Script::Reload() {
 	lua_pushcclosure(L, DrawTextSprite, 1);
 	lua_setglobal(L, "draw_text");
 
+	lua_pushlightuserdata(L, scene);
+	lua_pushcclosure(L, Play, 1);
+	lua_setglobal(L, "play_sound");
+
+	lua_pushlightuserdata(L, scene);
+	lua_pushcclosure(L, Stop, 1);
+	lua_setglobal(L, "stop_sound");
+
+	lua_pushlightuserdata(L, scene);
+	lua_pushcclosure(L, StopAll, 1);
+	lua_setglobal(L, "stop_all_sounds");
+
 	lua_pushcclosure(L, GetTicks, 0);
 	lua_setglobal(L, "get_ticks");
 
@@ -305,6 +317,58 @@ int Script::DrawTextSprite(lua_State* L) {
 
 	scene->DrawTextSprite(playerName, text, x, y, r, g, b, lineLength);
 
+	return 0;
+}
+
+int Script::Play(lua_State* L) {
+	Scene* scene = reinterpret_cast<Scene*>(lua_touserdata(L, lua_upvalueindex(1)));
+	std::string playerName = luaL_checkstring(L, 1);
+	if (!scene->IsOnline(playerName)) {
+		return luaL_error(L, "Player %s is not online", playerName.c_str());
+	}
+	std::string sound = luaL_checkstring(L, 2);
+	if (!scene->IsSoundLoaded(sound)) {
+		return luaL_error(L, "Sound %s is not loaded", sound.c_str());
+	}
+	std::uint8_t volume = static_cast<std::uint8_t>(luaL_checknumber(L, 3));
+	if (volume > 128) {
+		return luaL_error(L, "Invalid volume, must be between 0 and 128");
+	}
+	if (lua_gettop(L) > 3) {
+		std::uint16_t channel = static_cast<std::uint16_t>(luaL_checknumber(L, 4));
+		if (!scene->IsChannelValid(channel)) {
+			return luaL_error(L, "Invalid channel %d", channel);
+		}
+		scene->Play(playerName, sound, volume, channel);
+	}
+	else {
+		scene->PlayAny(playerName, sound, volume);
+	}
+	
+	return 0;
+}
+
+int Script::Stop(lua_State* L) {
+	Scene* scene = reinterpret_cast<Scene*>(lua_touserdata(L, lua_upvalueindex(1)));
+	std::string playerName = luaL_checkstring(L, 1);
+	if (!scene->IsOnline(playerName)) {
+		return luaL_error(L, "Player %s is not online", playerName.c_str());
+	}
+	std::uint16_t channel = static_cast<std::uint16_t>(luaL_checknumber(L, 2));
+	if (!scene->IsChannelValid(channel)) {
+		return luaL_error(L, "Invalid channel %d", channel);
+	}
+	scene->Stop(playerName, channel);
+	return 0;
+}
+
+int Script::StopAll(lua_State* L) {
+	Scene* scene = reinterpret_cast<Scene*>(lua_touserdata(L, lua_upvalueindex(1)));
+	std::string playerName = luaL_checkstring(L, 1);
+	if (!scene->IsOnline(playerName)) {
+		return luaL_error(L, "Player %s is not online", playerName.c_str());
+	}
+	scene->StopAll(playerName);
 	return 0;
 }
 

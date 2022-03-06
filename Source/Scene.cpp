@@ -19,7 +19,7 @@ Scene::Scene(std::string script, Config& config, std::uint16_t port) : config{ c
 		address.port = port;
 	}
 
-	host = enet_host_create(&address, config.MaxPlayers(), 3, 0, 0);
+	host = enet_host_create(&address, config.MaxPlayers(), 4, 0, 0);
 	if (!host) {
 		std::cerr << "ERROR: Could not create ENet host\n";
 		return;
@@ -30,6 +30,11 @@ Scene::Scene(std::string script, Config& config, std::uint16_t port) : config{ c
 	std::uint32_t i = 0;
 	for (const std::string& texture : config.GetTextures()) {
 		loadedTextures[texture] = i++;
+	}
+
+	i = 0;
+	for (const std::string& sound : config.GetSounds()) {
+		loadedSounds[sound] = i++;
 	}
 }
 
@@ -176,6 +181,17 @@ void Scene::Update() {
 		}
 		enet_peer_send(pair.second.peer, 1, statePacket.GetPacket(false));
 		pair.second.sprites.clear();
+
+		WritePacket audioPacket;
+		audioPacket.Write32(static_cast<std::uint32_t>(pair.second.audioCommands.size()));
+		for (const AudioCommand& audioCommand : pair.second.audioCommands) {
+			audioPacket.Write8(static_cast<std::uint8_t>(audioCommand.type));
+			audioPacket.Write8(audioCommand.volume);
+			audioPacket.Write16(audioCommand.channel);
+			audioPacket.Write32(audioCommand.sound);
+		}
+		enet_peer_send(pair.second.peer, 3, audioPacket.GetPacket(true));
+		pair.second.audioCommands.clear();
 	}
 }
 
@@ -186,6 +202,12 @@ void Scene::Reload() {
 	std::uint32_t i = 0;
 	for (const std::string& texture : config.GetTextures()) {
 		loadedTextures[texture] = i++;
+	}
+
+	loadedSounds.clear();
+	i = 0;
+	for (const std::string& sound : config.GetSounds()) {
+		loadedSounds[sound] = i++;
 	}
 
 	script.Reload();
@@ -259,4 +281,52 @@ void Scene::DrawTextSprite(const std::string& playerName, const std::string& tex
 	sprite.b = b;
 
 	players[playerName].sprites.push_back(sprite);
+}
+
+bool Scene::IsSoundLoaded(const std::string& sound) {
+	return loadedSounds.find(sound) != loadedSounds.end();
+}
+
+bool Scene::IsChannelValid(std::uint16_t channel) {
+	return channel < config.Channels();
+}
+
+void Scene::Play(const std::string& playerName, const std::string& sound, std::uint8_t volume, std::uint16_t channel) {
+	AudioCommand audioCommand;
+	audioCommand.type = AudioCommand::Type::Play;
+	audioCommand.volume = volume;
+	audioCommand.channel = channel;
+	audioCommand.sound = loadedSounds[sound];
+
+	players[playerName].audioCommands.push_back(audioCommand);
+}
+
+void Scene::PlayAny(const std::string& playerName, const std::string& sound, std::uint8_t volume) {
+	AudioCommand audioCommand;
+	audioCommand.type = AudioCommand::Type::PlayAny;
+	audioCommand.volume = volume;
+	audioCommand.channel = 0;
+	audioCommand.sound = loadedSounds[sound];
+
+	players[playerName].audioCommands.push_back(audioCommand);
+}
+
+void Scene::Stop(const std::string& playerName, std::uint16_t channel) {
+	AudioCommand audioCommand;
+	audioCommand.type = AudioCommand::Type::Stop;
+	audioCommand.volume = 0;
+	audioCommand.channel = channel;
+	audioCommand.sound = 0;
+
+	players[playerName].audioCommands.push_back(audioCommand);
+}
+
+void Scene::StopAll(const std::string& playerName) {
+	AudioCommand audioCommand;
+	audioCommand.type = AudioCommand::Type::StopAll;
+	audioCommand.volume = 0;
+	audioCommand.channel = 0;
+	audioCommand.sound = 0;
+
+	players[playerName].audioCommands.push_back(audioCommand);
 }

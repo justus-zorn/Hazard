@@ -17,6 +17,18 @@ namespace Hazard {
 		std::uint8_t r, g, b;
 	};
 
+	struct AudioCommand {
+		enum class Type {
+			Play,
+			PlayAny,
+			Stop,
+			StopAll
+		} type;
+		std::uint32_t sound;
+		std::uint16_t channel;
+		std::uint8_t volume;
+	};
+
 	struct KeyboardInput {
 		std::int32_t key;
 		bool pressed;

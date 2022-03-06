@@ -19,7 +19,7 @@ Client::Client(const std::string& playerName, const std::string& address, std::u
 		port = defaultPort;
 	}
 
-	host = enet_host_create(nullptr, 1, 3, 0, 0);
+	host = enet_host_create(nullptr, 1, 4, 0, 0);
 	if (!host) {
 		std::cerr << "ERROR: Could not create ENet host\n";
 		return;
@@ -32,7 +32,7 @@ Client::Client(const std::string& playerName, const std::string& address, std::u
 		return;
 	}
 
-	server = enet_host_connect(host, &serverAddress, 3, 0);
+	server = enet_host_connect(host, &serverAddress, 4, 0);
 	if (!server) {
 		std::cerr << "ERROR: Could not connect to " << address << '\n';
 		return;
@@ -90,6 +90,19 @@ bool Client::Update(const Input& input) {
 					}
 				}
 			}
+			else if (event.channelID == 3) {
+				ReadPacket packet(event.packet);
+				std::uint32_t audioCommandCount = packet.Read32();
+				audioCommands.resize(audioCommandCount);
+				for (std::uint32_t i = 0; i < audioCommandCount; ++i) {
+					AudioCommand& audioCommand = audioCommands[i];
+
+					audioCommand.type = static_cast<AudioCommand::Type>(packet.Read8());
+					audioCommand.volume = packet.Read8();
+					audioCommand.channel = packet.Read16();
+					audioCommand.sound = packet.Read32();
+				}
+			}
 			enet_packet_destroy(event.packet);
 			break;
 		}
@@ -119,4 +132,8 @@ bool Client::Update(const Input& input) {
 
 const std::vector<Sprite>& Client::GetSprites() const {
 	return sprites;
+}
+
+const std::vector<AudioCommand>& Client::GetAudioCommands() const {
+	return audioCommands;
 }

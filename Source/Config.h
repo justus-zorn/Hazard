@@ -21,23 +21,29 @@ namespace Hazard {
 		void Reload();
 
 		const std::vector<std::string>& GetTextures() const;
+		const std::vector<std::string>& GetSounds() const;
+
 		const std::string& WindowTitle() const;
 		std::uint32_t WindowWidth() const;
 		std::uint32_t WindowHeight() const;
 		std::uint32_t FontSize() const;
 		std::uint16_t Port() const;
 		std::uint32_t MaxPlayers() const;
+		std::uint16_t Channels() const;
 
 	private:
 		std::string path;
 		lua_State* L = nullptr;
 
 		std::vector<std::string> textures;
+		std::vector<std::string> sounds;
+
 		std::string windowTitle;
 		std::uint32_t windowWidth, windowHeight;
 		std::uint32_t fontSize;
 		std::uint16_t port;
 		std::uint32_t maxPlayers;
+		std::uint16_t channels;
 	};
 }
 

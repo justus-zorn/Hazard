@@ -8,8 +8,9 @@
 
 using namespace Hazard;
 
-Window::Window(const std::string& title, std::uint32_t width, std::uint32_t height, std::uint32_t fontSize) {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+Window::Window(const std::string& title, std::uint32_t width, std::uint32_t height, std::uint32_t fontSize, std::uint16_t channels)
+	: channels{ channels } {
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
 		std::cerr << "ERROR: Could not initialize SDL: " << SDL_GetError() << '\n';
 		return;
 	}
@@ -41,6 +42,14 @@ Window::Window(const std::string& title, std::uint32_t width, std::uint32_t heig
 		}
 	}
 
+	if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, MIX_DEFAULT_CHANNELS, 2048) < 0) {
+		std::cerr << "ERROR: Could not initialize SDL_mixer: " << Mix_GetError() << '\n';
+	}
+	else {
+		Mix_AllocateChannels(channels + 16);
+		Mix_ReserveChannels(channels);
+	}
+
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 
@@ -51,6 +60,9 @@ Window::~Window() {
 	SDL_StopTextInput();
 
 	FreeTextures();
+	FreeSounds();
+
+	Mix_CloseAudio();
 
 	TTF_CloseFont(font);
 	TTF_Quit();
@@ -150,6 +162,24 @@ void Window::LoadTextures(const std::vector<std::string>& textures) {
 	}
 }
 
+void Window::LoadSounds(const std::vector<std::string>& sounds) {
+	FreeSounds();
+
+	for (const std::string& sound : sounds) {
+		std::string path = "Sounds/" + sound;
+		SDL_RWops* file = SDL_RWFromFile(path.c_str(), "rb");
+		if (file) {
+			Mix_Chunk* chunk = Mix_LoadWAV_RW(file, 1);
+			if (chunk) {
+				loadedSounds.push_back(chunk);
+				continue;
+			}
+		}
+		std::cerr << "ERROR: Could not load sound '" << path << "': " << SDL_GetError() << '\n';
+		loadedSounds.push_back(nullptr);
+	}
+}
+
 void Window::DrawSprite(const Sprite& sprite) {
 	int windowWidth, windowHeight;
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
@@ -210,6 +240,32 @@ void Window::DrawSprite(const Sprite& sprite) {
 	}
 }
 
+void Window::Audio(const AudioCommand& audioCommand) {
+	switch (audioCommand.type) {
+	case AudioCommand::Type::Play:
+		if (audioCommand.sound < loadedSounds.size() && loadedSounds[audioCommand.sound] && audioCommand.channel < channels) {
+			Mix_PlayChannel(audioCommand.channel, loadedSounds[audioCommand.sound], 0);
+			Mix_Volume(audioCommand.channel, audioCommand.volume);
+		}
+		break;
+	case AudioCommand::Type::PlayAny:
+		if (audioCommand.sound < loadedSounds.size() && loadedSounds[audioCommand.sound]) {
+			int channel = Mix_PlayChannel(-1, loadedSounds[audioCommand.sound], 0);
+			Mix_Volume(channel, audioCommand.volume);
+		}
+		break;
+	case AudioCommand::Type::Stop:
+		if (audioCommand.channel < channels) {
+			Mix_HaltChannel(audioCommand.channel);
+		}
+		break;
+	case AudioCommand::Type::StopAll:
+		for (std::uint32_t i = 0; i < channels + 16; ++i) {
+			Mix_HaltChannel(i);
+		}
+	}
+}
+
 const Input& Window::GetInput() const {
 	return input;
 }
@@ -230,9 +286,22 @@ void Window::ReloadFont(std::uint32_t fontSize) {
 	}
 }
 
+void Window::SetChannels(std::uint16_t newChannels) {
+	Mix_AllocateChannels(newChannels + 16);
+	Mix_ReserveChannels(newChannels);
+	channels = newChannels;
+}
+
 void Window::FreeTextures() {
 	for (SDL_Texture* texture : loadedTextures) {
 		SDL_DestroyTexture(texture);
 	}
 	loadedTextures.clear();
+}
+
+void Window::FreeSounds() {
+	for (Mix_Chunk* sound : loadedSounds) {
+		Mix_FreeChunk(sound);
+	}
+	loadedSounds.clear();
 }

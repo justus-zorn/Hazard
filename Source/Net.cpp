@@ -13,6 +13,12 @@ void WritePacket::Write8(std::uint8_t value) {
 	data.push_back(value);
 }
 
+void WritePacket::Write16(std::uint16_t value) {
+	std::uint32_t start = static_cast<std::uint32_t>(data.size());
+	data.resize(start + 2);
+	*reinterpret_cast<std::uint16_t*>(&data[start]) = SDL_SwapBE16(value);
+}
+
 void WritePacket::Write32(std::uint32_t value) {
 	std::uint32_t start = static_cast<std::uint32_t>(data.size());
 	data.resize(start + 4);
@@ -37,6 +43,18 @@ ReadPacket::ReadPacket(ENetPacket* packet) : data{ packet->data }, dataLength{ s
 std::uint8_t ReadPacket::Read8() {
 	if (index < dataLength) {
 		return data[index++];
+	}
+	else {
+		std::cerr << "ERROR: Detected invalid packet\n";
+		return 0;
+	}
+}
+
+std::uint16_t ReadPacket::Read16() {
+	if (sizeof(std::uint16_t) <= dataLength && index <= dataLength - sizeof(std::uint16_t)) {
+		std::uint16_t value = SDL_SwapBE16(*reinterpret_cast<const std::uint16_t*>(data + index));
+		index += sizeof(std::uint16_t);
+		return value;
 	}
 	else {
 		std::cerr << "ERROR: Detected invalid packet\n";

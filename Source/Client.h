@@ -23,12 +23,14 @@ namespace Hazard {
 		bool Update(const Input& input);
 
 		const std::vector<Sprite>& GetSprites() const;
+		const std::vector<AudioCommand>& GetAudioCommands() const;
 
 	private:
 		ENetHost* host = nullptr;
 		ENetPeer* server = nullptr;
 
 		std::vector<Sprite> sprites;
+		std::vector<AudioCommand> audioCommands;
 	};
 }
 

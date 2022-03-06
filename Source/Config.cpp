@@ -30,6 +30,7 @@ void Config::Reload() {
 	fontSize = 24;
 	port = 34344;
 	maxPlayers = 32;
+	channels = 32;
 
 	lua_newtable(L);
 	lua_setglobal(L, "Config");
@@ -59,6 +60,23 @@ void Config::Reload() {
 		}
 		else {
 			std::cerr << "ERROR: Config.textures is not an array\n";
+		}
+	}
+
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "sounds");
+	if (!lua_isnil(L, -1)) {
+		if (lua_istable(L, -1)) {
+			lua_pushnil(L);
+			while (lua_next(L, -2)) {
+				if (lua_isstring(L, -1)) {
+					sounds.push_back(lua_tostring(L, -1));
+				}
+				lua_pop(L, 1);
+			}
+		}
+		else {
+			std::cout << "ERROR: Config.sounds is not an array\n";
 		}
 	}
 
@@ -159,11 +177,33 @@ void Config::Reload() {
 		}
 	}
 
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "channels");
+
+	if (!lua_isnil(L, -1)) {
+		if (lua_isinteger(L, -1)) {
+			lua_Integer i = lua_tointeger(L, -1);
+			if (i > 0) {
+				channels = static_cast<std::uint32_t>(i);
+			}
+			else {
+				std::cerr << "ERROR: Config.channels must be greater than 0\n";
+			}
+		}
+		else {
+			std::cerr << "ERROR: Config.channels is not an integer\n";
+		}
+	}
+
 	lua_settop(L, 0);
 }
 
 const std::vector<std::string>& Config::GetTextures() const {
 	return textures;
+}
+
+const std::vector<std::string>& Config::GetSounds() const {
+	return sounds;
 }
 
 const std::string& Config::WindowTitle() const {
@@ -188,4 +228,8 @@ std::uint16_t Config::Port() const {
 
 std::uint32_t Config::MaxPlayers() const {
 	return maxPlayers;
+}
+
+std::uint16_t Config::Channels() const {
+	return channels;
 }
