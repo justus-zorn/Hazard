@@ -21,6 +21,9 @@ in integrated mode.
 ## Config.textures
 Textures that must be loaded by the engine. All textures are contained in the subdirectory
 'Textures'.
+## Config.sounds
+Sounds that must be loaded by the engine. All sounds are in .wav format and are contained in the
+subdirectory 'Sounds'.
 ## Config.title
 The title of the game window.
 ## Config.width
