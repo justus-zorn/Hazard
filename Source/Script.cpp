@@ -59,6 +59,10 @@ void Script::Reload() {
 	lua_setglobal(L, "get_composition");
 
 	lua_pushlightuserdata(L, scene);
+	lua_pushcclosure(L, SetComposition, 1);
+	lua_setglobal(L, "set_composition");
+
+	lua_pushlightuserdata(L, scene);
 	lua_pushcclosure(L, DrawSprite, 1);
 	lua_setglobal(L, "draw_sprite");
 
@@ -182,18 +186,6 @@ void Script::OnAxisEvent(const std::string& playerName, const std::string& axis,
 	lua_settop(L, 0);
 }
 
-void Script::OnTextInput(const std::string& playerName, const std::string& composition) {
-	if (GetFunction("on_text_input")) {
-		lua_pushstring(L, playerName.c_str());
-		lua_pushstring(L, composition.c_str());
-		if (lua_pcall(L, 2, 0, 0) != LUA_OK) {
-			std::cerr << "ERROR: Error while calling Game.on_text_input: " << lua_tostring(L, -1) << '\n';
-		}
-	}
-
-	lua_settop(L, 0);
-}
-
 int Script::GetPlayers(lua_State* L) {
 	Scene* scene = reinterpret_cast<Scene*>(lua_touserdata(L, lua_upvalueindex(1)));
 	std::vector<std::string> players = scene->GetPlayers();
@@ -268,6 +260,17 @@ int Script::GetComposition(lua_State* L) {
 	}
 	lua_pushstring(L, scene->GetComposition(playerName).c_str());
 	return 1;
+}
+
+int Script::SetComposition(lua_State* L) {
+	Scene* scene = reinterpret_cast<Scene*>(lua_touserdata(L, lua_upvalueindex(1)));
+	std::string playerName = luaL_checkstring(L, 1);
+	if (!scene->IsOnline(playerName)) {
+		return luaL_error(L, "Player %s is not online", playerName.c_str());
+	}
+	std::string composition = luaL_checkstring(L, 2);
+	scene->SetComposition(playerName, composition);
+	return 0;
 }
 
 int Script::DrawSprite(lua_State* L) {

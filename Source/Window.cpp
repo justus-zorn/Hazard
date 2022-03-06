@@ -93,17 +93,6 @@ bool Window::Update() {
 			if (event.key.keysym.sym == SDLK_F5) {
 				shouldReload = true;
 			}
-			else if (event.key.keysym.sym == SDLK_BACKSPACE) {
-				while (composition.length() > 0 && (composition[composition.length() - 1] & 0xC0) == 0x80) {
-					composition.erase(composition.end() - 1);
-				}
-				if (composition.length() > 0) {
-					composition.erase(composition.end() - 1);
-				}
-			}
-			else if (event.key.keysym.sym == SDLK_RETURN) {
-				input.textInput = true;
-			}
 			input.keyboardInputs.push_back({ event.key.keysym.sym, true });
 			break;
 		case SDL_KEYUP:
@@ -121,14 +110,9 @@ bool Window::Update() {
 			input.mouseMotion = true;
 			break;
 		case SDL_TEXTINPUT:
-			composition += event.text.text;
+			input.textInput += event.text.text;
 			break;
 		}
-	}
-
-	input.composition = composition;
-	if (input.textInput) {
-		composition.clear();
 	}
 
 	return shouldReload;
@@ -231,8 +215,8 @@ void Window::DrawSprite(const Sprite& sprite) {
 		src.h = textureHeight;
 
 		SDL_Rect dst;
-		dst.x = (windowWidth / 2) + (sprite.x - sprite.scale);
-		dst.y = (windowHeight / 2) - (sprite.y + sprite.scale);
+		dst.x = (windowWidth / 2) + (sprite.x - textureWidth / 2);
+		dst.y = (windowHeight / 2) - (sprite.y + textureHeight / 2);
 		dst.w = sprite.scale * 2;
 		dst.h = sprite.scale * 2;
 

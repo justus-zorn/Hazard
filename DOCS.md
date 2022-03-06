@@ -74,9 +74,6 @@ released ('false').
 'axis' is the name of the movement direction ('Mouse X' or 'Mouse Y'), and 'state' is a signed
 integer value indicating the current position of the mouse on the screen (in pixels). The center of
 the screen is at (0, 0).
-## Game.on_text_input(player, composition)
-'Game.on_text_input' is executed when a player confirms a text composition using the return key.
-'player' is the player's name, and 'composition' is the text the player entered.
 
 # Functions
 ## get_players()
@@ -95,8 +92,9 @@ their mouse.
 'get_axis' returns the current state of 'axis' for 'player'. Valid values for axis are 'Mouse X'
 and 'Mouse Y'.
 ## get_composition(player)
-'get_composition' returns the current text composition for 'player'. After the 'Game.on_text_input'
-function is called, the text composition is reset.
+Returns the current text composition for 'player'.
+## set_composition(player)
+Sets the current text composition for 'player'.
 ## draw_sprite(player, texture, x, y, size, frame_length?, animation_start?)
 'draw_sprite' draws a square texture on the screen of the specified player. 'x' and 'y' are screen
 coordinates (in pixels), where (0, 0) is the center of the screen. 'size' is the size of the

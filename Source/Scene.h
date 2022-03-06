@@ -35,6 +35,7 @@ namespace Hazard {
 		bool IsButtonDown(const std::string& playerName, const std::string& button);
 		std::int32_t GetAxis(const std::string& playerName, const std::string& axis);
 		const std::string& GetComposition(const std::string& playerName);
+		void SetComposition(const std::string& playerName, std::string composition);
 
 		bool IsTextureLoaded(const std::string& texture);
 		void DrawSprite(const std::string& playerName, const std::string& texture, std::int32_t x, std::int32_t y, std::uint32_t scale, std::uint32_t animation);

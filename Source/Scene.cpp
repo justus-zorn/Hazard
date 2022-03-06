@@ -106,14 +106,25 @@ void Scene::Update() {
 				ReadPacket packet(event.packet);
 				std::uint32_t keyboardInputs = packet.Read32();
 				for (std::uint32_t i = 0; i < keyboardInputs; ++i) {
-					std::string key = SDL_GetKeyName(packet.Read32());
-					if (packet.Read8()) {
+					SDL_Keycode keycode = packet.Read32();
+					std::uint8_t pressed = packet.Read8();
+					std::string key = SDL_GetKeyName(keycode);
+					if (pressed) {
 						players[player->playerName].keys[key] = true;
 						script.OnKeyEvent(player->playerName, key, true);
 					}
 					else {
 						players[player->playerName].keys[key] = false;
 						script.OnKeyEvent(player->playerName, key, false);
+					}
+					if (keycode == SDLK_BACKSPACE && pressed) {
+						std::string& composition = players[player->playerName].composition;
+						while (composition.length() > 0 && (composition[composition.length() - 1] & 0xC0) == 0x80) {
+							composition.erase(composition.end() - 1);
+						}
+						if (composition.length() > 0) {
+							composition.erase(composition.end() - 1);
+						}
 					}
 				}
 				std::uint32_t buttonInputs = packet.Read32();
@@ -136,10 +147,7 @@ void Scene::Update() {
 					script.OnAxisEvent(player->playerName, "Mouse X", mouseMotionX);
 					script.OnAxisEvent(player->playerName, "Mouse Y", mouseMotionY);
 				}
-				players[player->playerName].composition = packet.ReadString();
-				if (packet.Read8()) {
-					script.OnTextInput(player->playerName, players[player->playerName].composition);
-				}
+				players[player->playerName].composition += packet.ReadString();
 			}
 			enet_packet_destroy(event.packet);
 			break;
@@ -251,6 +259,10 @@ std::int32_t Scene::GetAxis(const std::string& playerName, const std::string& ax
 
 const std::string& Scene::GetComposition(const std::string& playerName) {
 	return players[playerName].composition;
+}
+
+void Scene::SetComposition(const std::string& playerName, std::string composition) {
+	players[playerName].composition = composition;
 }
 
 bool Scene::IsTextureLoaded(const std::string& texture) {

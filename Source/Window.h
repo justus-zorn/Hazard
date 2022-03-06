@@ -52,7 +52,6 @@ namespace Hazard {
 		std::vector<SDL_Texture*> loadedTextures;
 		std::vector<Mix_Chunk*> loadedSounds;
 
-		std::string composition;
 		Input input;
 
 		void FreeTextures();

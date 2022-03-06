@@ -29,7 +29,6 @@ namespace Hazard {
 		void OnKeyEvent(const std::string& playerName, const std::string& key, bool pressed);
 		void OnButtonEvent(const std::string& playerName, const std::string& button, bool pressed);
 		void OnAxisEvent(const std::string& playerName, const std::string& axis, std::int32_t state);
-		void OnTextInput(const std::string& playerName, const std::string& composition);
 
 	private:
 		std::string path;
@@ -45,6 +44,7 @@ namespace Hazard {
 		static int IsButtonDown(lua_State* L);
 		static int GetAxis(lua_State* L);
 		static int GetComposition(lua_State* L);
+		static int SetComposition(lua_State* L);
 
 		static int DrawSprite(lua_State* L);
 		static int DrawTextSprite(lua_State* L);
