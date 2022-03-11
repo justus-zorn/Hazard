@@ -215,8 +215,8 @@ void Window::DrawSprite(const Sprite& sprite) {
 		src.h = textureHeight;
 
 		SDL_Rect dst;
-		dst.x = (windowWidth / 2) + (sprite.x - textureWidth / 2);
-		dst.y = (windowHeight / 2) - (sprite.y + textureHeight / 2);
+		dst.x = (windowWidth / 2) + (sprite.x - sprite.scale);
+		dst.y = (windowHeight / 2) - (sprite.y + sprite.scale);
 		dst.w = sprite.scale * 2;
 		dst.h = sprite.scale * 2;
 
