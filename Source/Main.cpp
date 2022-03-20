@@ -6,6 +6,7 @@
 
 #include <enet.h>
 
+#include "Audio.h"
 #include "Client.h"
 #include "Config.h"
 #include "Scene.h"
@@ -19,10 +20,12 @@ static std::atomic<bool> shouldReload = false;
 void RunClient(const std::string& player, const std::string& address) {
 	Config config("config.lua");
 	Client client(player, address, config.Port());
+
+	Audio audio;
 	Window window(config.WindowTitle(), config.WindowWidth(), config.WindowHeight(), config.FontSize(), config.Channels());
 
 	window.LoadTextures(config.GetTextures());
-	window.LoadSounds(config.GetSounds());
+	audio.LoadSounds(config.GetSounds());
 	while (!window.ShouldClose()) {
 		if (window.Update()) {
 			shouldReload = true;
@@ -30,10 +33,9 @@ void RunClient(const std::string& player, const std::string& address) {
 			window.SetTitle(config.WindowTitle());
 			window.SetSize(config.WindowWidth(), config.WindowHeight());
 			window.ReloadFont(config.FontSize());
-			window.SetChannels(config.Channels());
 
 			window.LoadTextures(config.GetTextures());
-			window.LoadSounds(config.GetSounds());
+			audio.LoadSounds(config.GetSounds());
 		}
 		if (!client.Update(window.GetInput())) {
 			break;
@@ -42,7 +44,7 @@ void RunClient(const std::string& player, const std::string& address) {
 			window.DrawSprite(sprite);
 		}
 		for (const AudioCommand& audioCommand : client.GetAudioCommands()) {
-			window.Audio(audioCommand);
+			audio.Run(audioCommand);
 		}
 		window.Present();
 	}
@@ -72,31 +74,34 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	if (argc == 1) {
-		std::thread server(RunServer);
+	try {
+		if (argc == 1) {
+			std::thread server(RunServer);
 
-		RunClient("local", "localhost");
+			RunClient("local", "localhost");
 
-		running = false;
-		server.join();
-	}
-	else {
-		if (std::string(argv[1]) == "--connect") {
-			if (argc < 4) {
-				std::cerr << "ERROR: Missing command line arguments\n";
-			}
-			else {
-				RunClient(argv[3], argv[2]);
-			}
-		}
-		else if (std::string(argv[1]) == "--server") {
-			RunServer();
+			running = false;
+			server.join();
 		}
 		else {
-			std::cerr << "ERROR: Unknown command line option '" << argv[1] << '\n';
+			if (std::string(argv[1]) == "--connect") {
+				if (argc < 4) {
+					std::cerr << "ERROR: Missing command line arguments\n";
+				}
+				else {
+					RunClient(argv[3], argv[2]);
+				}
+			}
+			else if (std::string(argv[1]) == "--server") {
+				RunServer();
+			}
+			else {
+				std::cerr << "ERROR: Unknown command line option '" << argv[1] << '\n';
+			}
 		}
 	}
-
+	catch (...) {}
+	
 	enet_deinitialize();
 
 	return 0;
