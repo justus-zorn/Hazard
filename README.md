@@ -25,7 +25,6 @@ After generation is finished, the project can be built using CMake:
 To build Hazard in release mode, add `--config Release`.
 
 ## Dependencies
-Hazard depends on enet for networking, Lua for scripting, SDL for rendering, SDL_image for
-loading images, and SDL_ttf as well as Freetype for
-rendering text. SDL_ttf is very slightly modified to use the included Freetype library. For playing
-audio, Hazard uses PortAudio.
+Hazard depends on enet for networking, Lua for scripting, SDL for rendering and SDL_ttf as well as
+Freetype for rendering text. SDL_ttf is very slightly modified to use the included Freetype
+library. For playing audio, Hazard uses PortAudio. For loading images, stb_image is used.

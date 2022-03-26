@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include <SDL_image.h>
+#include <stb_image.h>
 
 #include "Window.h"
 
@@ -24,11 +24,6 @@ Window::Window(const std::string& title, std::uint32_t width, std::uint32_t heig
 	if (!renderer) {
 		std::cerr << "ERROR: Could not create renderer: " << SDL_GetError() << '\n';
 		return;
-	}
-
-	int img_flags = IMG_INIT_JPG | IMG_INIT_PNG | IMG_INIT_WEBP;
-	if (IMG_Init(img_flags) != img_flags) {
-		std::cerr << "ERROR: Could not load SDL_image: " << IMG_GetError() << '\n';
 	}
 
 	if (TTF_Init() < 0) {
@@ -54,8 +49,6 @@ Window::~Window() {
 
 	TTF_CloseFont(font);
 	TTF_Quit();
-
-	IMG_Quit();
 
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
@@ -120,17 +113,26 @@ void Window::LoadTextures(const std::vector<std::string>& textures) {
 
 	for (const std::string& texture : textures) {
 		std::string path = "Textures/" + texture;
-		SDL_Surface* surface = IMG_Load(path.c_str());
-		if (surface) {
-			SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-			SDL_FreeSurface(surface);
-			if (texture) {
+		int width, height;
+		unsigned char* data = stbi_load(path.c_str(), &width, &height, nullptr, STBI_rgb_alpha);
+		if (!data) {
+			std::cerr << "ERROR: Could not load texture '" << path << "'\n";
+			loadedTextures.push_back(nullptr);
+			continue;
+		}
+
+		SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, width, height);
+		if (texture) {
+			if (SDL_UpdateTexture(texture, nullptr, data, width * 4) >= 0) {
 				loadedTextures.push_back(texture);
+				stbi_image_free(data);
 				continue;
 			}
+			SDL_DestroyTexture(texture);
 		}
 		std::cerr << "ERROR: Could not load texture '" << path << "': " << SDL_GetError() << '\n';
 		loadedTextures.push_back(nullptr);
+		stbi_image_free(data);
 	}
 }
 
@@ -216,7 +218,9 @@ void Window::ReloadFont(std::uint32_t fontSize) {
 
 void Window::FreeTextures() {
 	for (SDL_Texture* texture : loadedTextures) {
-		SDL_DestroyTexture(texture);
+		if (texture) {
+			SDL_DestroyTexture(texture);
+		}
 	}
 	loadedTextures.clear();
 }
