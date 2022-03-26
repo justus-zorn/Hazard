@@ -26,5 +26,6 @@ To build Hazard in release mode, add `--config Release`.
 
 ## Dependencies
 Hazard depends on enet for networking, Lua for scripting, SDL for rendering, SDL_image for
-loading images, SDL_mixer for loading and playing audio, and SDL_ttf as well as Freetype for
-rendering text. SDL_ttf is very slightly modified to use the included Freetype library.
+loading images, and SDL_ttf as well as Freetype for
+rendering text. SDL_ttf is very slightly modified to use the included Freetype library. For playing
+audio, Hazard uses PortAudio.
