@@ -14,7 +14,7 @@
 namespace Hazard {
 	class Window {
 	public:
-		Window(const std::string& title, std::uint32_t width, std::uint32_t height, std::uint32_t fontSize, std::uint16_t channels);
+		Window(const std::string& title, std::uint32_t width, std::uint32_t height, std::uint32_t fontSize);
 		Window(const Window&) = delete;
 		~Window();
 
@@ -38,8 +38,6 @@ namespace Hazard {
 		SDL_Window* window = nullptr;
 		SDL_Renderer* renderer = nullptr;
 		TTF_Font* font = nullptr;
-
-		std::uint16_t channels;
 
 		bool shouldClose = false;
 

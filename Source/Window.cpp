@@ -8,8 +8,7 @@
 
 using namespace Hazard;
 
-Window::Window(const std::string& title, std::uint32_t width, std::uint32_t height, std::uint32_t fontSize, std::uint16_t channels)
-	: channels{ channels } {
+Window::Window(const std::string& title, std::uint32_t width, std::uint32_t height, std::uint32_t fontSize) {
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
 		std::cerr << "ERROR: Could not initialize SDL: " << SDL_GetError() << '\n';
 		return;

@@ -57,6 +57,7 @@ Client::~Client() {
 
 bool Client::Update(const Input& input) {
 	ENetEvent event;
+	audioCommands.clear();
 	while (enet_host_service(host, &event, 0) > 0) {
 		switch (event.type) {
 		case ENET_EVENT_TYPE_DISCONNECT:

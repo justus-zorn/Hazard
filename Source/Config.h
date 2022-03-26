@@ -29,7 +29,6 @@ namespace Hazard {
 		std::uint32_t FontSize() const;
 		std::uint16_t Port() const;
 		std::uint32_t MaxPlayers() const;
-		std::uint16_t Channels() const;
 
 	private:
 		std::string path;
@@ -43,7 +42,6 @@ namespace Hazard {
 		std::uint32_t fontSize;
 		std::uint16_t port;
 		std::uint32_t maxPlayers;
-		std::uint16_t channels;
 	};
 }
 

@@ -4,6 +4,7 @@
 
 #include <SDL.h>
 
+#include "Audio.h"
 #include "Net.h"
 #include "Scene.h"
 
@@ -300,7 +301,7 @@ bool Scene::IsSoundLoaded(const std::string& sound) {
 }
 
 bool Scene::IsChannelValid(std::uint16_t channel) {
-	return channel < config.Channels();
+	return channel < HAZARD_AUDIO_CHANNELS / 2;
 }
 
 void Scene::Play(const std::string& playerName, const std::string& sound, std::uint8_t volume, std::uint16_t channel) {

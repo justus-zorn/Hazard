@@ -18,9 +18,6 @@ All configuration options must be contained in the file 'config.lua' at the root
 directory. All configuration options except for Config.port and Config.max_players can be reloaded
 in integrated mode.
 
-### Config.channels
-The number of audio channels to allocate. Only one sound can be played per audio channel at a time.
-Valid channel IDs are 0 to channels - 1. Default is 32.
 ### Config.font_size
 The size (in points) to use for text rendering. Default is 24.
 ### Config.height
@@ -30,8 +27,9 @@ The maximum number of players that can be in a game at the same time. Default is
 ### Config.port
 The UDP port to use for networking. Default is 34344.
 ### Config.sounds
-Sounds that must be loaded by the engine. All sounds are in .wav format and are contained in the
-subdirectory 'Sounds'.
+Sounds that must be loaded by the engine. All sounds are contained in the subdirectory 'Sounds'.
+Currently, only 16-bit uncompressed PCM mono or stereo WAVE files with a sample rate of 44100 Hz
+are supported.
 ### Config.textures
 Textures that must be loaded by the engine. All textures are contained in the subdirectory
 'Textures'. Valid formats are .png, .jpg and .bmp.
@@ -109,8 +107,10 @@ Returns a boolean indicating whether 'player' is currently online.
 ### kick(player)
 Removes a player from the game. 'Game.on_disconnect' is still called.
 ### play_sound(player, sound, volume, channel?)
-Starts playing 'sound' for 'player'. 'volume' must be between 0 and 128. The sound will be played
-on 'channel', overwriting any previously playing sounds on that channel.
+Starts playing 'sound' for 'player'. 'volume' must be between 0 and 128. If 'channel' is given, the
+sound is played on that channel, overwriting any sound playing in that channel. 'channel' must be
+between 0 and 15. Unless a channel is given, no more than 16 sounds can be played at the same time.
+Any new sound will not be played.
 ### set_composition(player)
 Sets the current text composition for 'player'.
 ### stop_all_sounds(player)

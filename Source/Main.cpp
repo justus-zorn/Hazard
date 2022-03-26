@@ -22,7 +22,7 @@ void RunClient(const std::string& player, const std::string& address) {
 	Client client(player, address, config.Port());
 
 	Audio audio;
-	Window window(config.WindowTitle(), config.WindowWidth(), config.WindowHeight(), config.FontSize(), config.Channels());
+	Window window(config.WindowTitle(), config.WindowWidth(), config.WindowHeight(), config.FontSize());
 
 	window.LoadTextures(config.GetTextures());
 	audio.LoadSounds(config.GetSounds());
