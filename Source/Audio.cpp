@@ -115,7 +115,7 @@ void Audio::LoadSounds(const std::vector<std::string>& sounds) {
 	loadedSounds.clear();
 
 	for (const std::string& sound : sounds) {
-		loadedSounds.push_back(LoadWave(sound));
+		loadedSounds.push_back(LoadWave("Sounds/" + sound));
 	}
 }
 
