@@ -73,7 +73,7 @@ Window::Window(const std::string& title, std::uint32_t width, std::uint32_t heig
 	CreateShader();
 	CreateVAO();
 
-	if (TTF_Init() < 0) {
+	/*if (TTF_Init() < 0) {
 		std::cerr << "ERROR: Could not initialize SDL_ttf: " << TTF_GetError() << '\n';
 		throw std::exception();
 	}
@@ -83,7 +83,7 @@ Window::Window(const std::string& title, std::uint32_t width, std::uint32_t heig
 			std::cerr << "ERROR: Could not load 'font.ttf': " << TTF_GetError() << '\n';
 			throw std::exception();
 		}
-	}
+	}*/
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -101,8 +101,8 @@ Window::~Window() {
 	glDeleteVertexArrays(1, &vao);
 	glDeleteBuffers(1, &vbo);
 
-	TTF_CloseFont(font);
-	TTF_Quit();
+	/*TTF_CloseFont(font);
+	TTF_Quit();*/
 
 	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
@@ -271,11 +271,11 @@ void Window::SetSize(std::uint32_t width, std::uint32_t height) {
 }
 
 void Window::ReloadFont(std::uint32_t fontSize) {
-	TTF_CloseFont(font);
+	/*TTF_CloseFont(font);
 	font = TTF_OpenFont("font.ttf", fontSize);
 	if (!font) {
 		std::cerr << "ERROR: Could not load 'font.ttf': " << TTF_GetError() << '\n';
-	}
+	}*/
 }
 
 void Window::FreeTextures() {

@@ -8,7 +8,6 @@
 
 #include <glad/glad.h>
 #include <SDL.h>
-#include <SDL_ttf.h>
 
 #include "Common.h"
 
@@ -38,7 +37,7 @@ namespace Hazard {
 	private:
 		SDL_Window* window = nullptr;
 		SDL_GLContext context = nullptr;
-		TTF_Font* font = nullptr;
+		/*TTF_Font* font = nullptr;*/
 
 		bool shouldClose = false;
 
