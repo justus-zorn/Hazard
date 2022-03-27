@@ -1,7 +1,9 @@
 // Copyright 2022 Justus Zorn
 
 #include <exception>
+#include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include <stb_image.h>
 
@@ -34,13 +36,13 @@ const char* fragmentShader = "#version 330 core\n"
 "}\n";
 
 GLfloat vertices[] = {
-	-1.0f, -1.0f, 0.0f, 0.0f,
-	1.0f, -1.0f, 1.0f, 0.0f,
-	1.0f, 1.0f, 1.0f, 1.0f,
+	-1.0f, -1.0f, 0.0f, 1.0f,
+	1.0f, -1.0f, 1.0f, 1.0f,
+	1.0f, 1.0f, 1.0f, 0.0f,
 
-	-1.0f, -1.0f, 0.0f, 0.0f,
-	1.0f, 1.0f, 1.0f, 1.0f,
-	-1.0f, 1.0f, 0.0f, 1.0f
+	-1.0f, -1.0f, 0.0f, 1.0f,
+	1.0f, 1.0f, 1.0f, 0.0f,
+	-1.0f, 1.0f, 0.0f, 0.0f
 };
 
 Window::Window(const std::string& title, std::uint32_t width, std::uint32_t height, std::uint32_t fontSize) {
@@ -70,27 +72,17 @@ Window::Window(const std::string& title, std::uint32_t width, std::uint32_t heig
 		throw std::exception();
 	}
 
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
 	CreateShader();
 	CreateVAO();
 
-	/*if (TTF_Init() < 0) {
-		std::cerr << "ERROR: Could not initialize SDL_ttf: " << TTF_GetError() << '\n';
-		throw std::exception();
-	}
-	else {
-		font = TTF_OpenFont("font.ttf", fontSize);
-		if (!font) {
-			std::cerr << "ERROR: Could not load 'font.ttf': " << TTF_GetError() << '\n';
-			throw std::exception();
-		}
-	}*/
+	ReloadFont(fontSize);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	SDL_StartTextInput();
-
-	stbi_set_flip_vertically_on_load(1);
 }
 
 Window::~Window() {
@@ -100,9 +92,6 @@ Window::~Window() {
 	glDeleteProgram(program);
 	glDeleteVertexArrays(1, &vao);
 	glDeleteBuffers(1, &vbo);
-
-	/*TTF_CloseFont(font);
-	TTF_Quit();*/
 
 	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
@@ -199,6 +188,45 @@ void Window::DrawSprite(const Sprite& sprite) {
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
 	if (sprite.isText) {
+		if (sprite.text.length() == 0) {
+			return;
+		}
+		std::uint32_t codepoint = 'a';
+		if (font.glyphs.find(codepoint) == font.glyphs.end()) {
+			Glyph& glyph = font.glyphs[codepoint];
+
+			glGenTextures(1, &glyph.texture);
+			glBindTexture(GL_TEXTURE_2D, glyph.texture);
+
+			float scale = stbtt_ScaleForPixelHeight(&font.info, font.size);
+			std::uint8_t* bitmap = stbtt_GetCodepointBitmap(&font.info, 0, scale, codepoint, &glyph.width, &glyph.height, nullptr, nullptr);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, glyph.width, glyph.height, 0, GL_RED, GL_UNSIGNED_BYTE, bitmap);
+
+			stbtt_FreeBitmap(bitmap, nullptr);
+		}
+
+		Glyph& glyph = font.glyphs[codepoint];
+
+		glUseProgram(program);
+		glBindVertexArray(vao);
+		glBindTexture(GL_TEXTURE_2D, glyph.texture);
+
+		glUniform2f(positionUniform, 0.0f, 0.0f);
+		glUniform2f(sizeUniform, static_cast<GLfloat>(glyph.width) / windowWidth, static_cast<GLfloat>(glyph.height) / windowHeight);
+		glUniform1f(texcoordOffsetUniform, 0.0f);
+		glUniform1f(texcoordScaleUniform, 1.0f);
+
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindVertexArray(0);
+		glUseProgram(0);
 		/*
 		if (!font || sprite.text.length() == 0) {
 			return;
@@ -271,11 +299,22 @@ void Window::SetSize(std::uint32_t width, std::uint32_t height) {
 }
 
 void Window::ReloadFont(std::uint32_t fontSize) {
-	/*TTF_CloseFont(font);
-	font = TTF_OpenFont("font.ttf", fontSize);
-	if (!font) {
-		std::cerr << "ERROR: Could not load 'font.ttf': " << TTF_GetError() << '\n';
-	}*/
+	font.glyphs.clear();
+
+	std::ifstream fontFile("font.ttf", std::ios::binary);
+	std::stringstream fontFileContent;
+
+	fontFileContent << fontFile.rdbuf();
+
+	fontFile.close();
+
+	font.file = fontFileContent.str();
+	font.size = fontSize;
+
+	if (!stbtt_InitFont(&font.info, reinterpret_cast<const unsigned char*>(font.file.data()), 0)) {
+		std::cerr << "ERROR: Could not load 'font.ttf'\n";
+		throw std::exception();
+	}
 }
 
 void Window::FreeTextures() {

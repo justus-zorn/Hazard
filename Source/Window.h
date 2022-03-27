@@ -4,10 +4,12 @@
 #define Hazard_Window_h
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <glad/glad.h>
 #include <SDL.h>
+#include <stb_truetype.h>
 
 #include "Common.h"
 
@@ -37,7 +39,20 @@ namespace Hazard {
 	private:
 		SDL_Window* window = nullptr;
 		SDL_GLContext context = nullptr;
-		/*TTF_Font* font = nullptr;*/
+
+		struct Glyph {
+			int width, height;
+			GLuint texture;
+		};
+		
+		struct Font {
+			std::string file;
+			std::uint32_t size;
+			stbtt_fontinfo info = {};
+			std::unordered_map<std::uint32_t, Glyph> glyphs;
+		};
+
+		Font font;
 
 		bool shouldClose = false;
 
