@@ -1,5 +1,6 @@
 // Copyright 2022 Justus Zorn
 
+#include <exception>
 #include <iostream>
 
 #include <stb_image.h>
@@ -8,49 +9,102 @@
 
 using namespace Hazard;
 
+const char* vertexShader = "#version 330 core\n"
+"layout (location = 0) in vec2 aPosition;\n"
+"layout (location = 1) in vec2 aTexcoords;\n"
+"out vec2 texcoords;\n"
+"uniform vec2 uPosition;\n"
+"uniform vec2 uSize;\n"
+"uniform float uTexcoordOffset;\n"
+"uniform float uTexcoordScale;\n"
+"void main() {\n"
+"gl_Position = vec4(aPosition.x * uSize.x + uPosition.x, aPosition.y * uSize.y + uPosition.y, 0.0f, 1.0f);\n"
+"texcoords = vec2(aTexcoords.x * uTexcoordScale + uTexcoordOffset, aTexcoords.y);\n"
+"}\n";
+
+const char* fragmentShader = "#version 330 core\n"
+"in vec2 texcoords;\n"
+"out vec4 fragColor;\n"
+"uniform sampler2D sprite;\n"
+"void main() {\n"
+"fragColor = texture(sprite, texcoords);\n"
+"if (fragColor.a == 0.0f) {\n"
+"discard;\n"
+"}\n"
+"}\n";
+
+GLfloat vertices[] = {
+	-1.0f, -1.0f, 0.0f, 0.0f,
+	1.0f, -1.0f, 1.0f, 0.0f,
+	1.0f, 1.0f, 1.0f, 1.0f,
+
+	-1.0f, -1.0f, 0.0f, 0.0f,
+	1.0f, 1.0f, 1.0f, 1.0f,
+	-1.0f, 1.0f, 0.0f, 1.0f
+};
+
 Window::Window(const std::string& title, std::uint32_t width, std::uint32_t height, std::uint32_t fontSize) {
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
 		std::cerr << "ERROR: Could not initialize SDL: " << SDL_GetError() << '\n';
-		return;
+		throw std::exception();
 	}
 
-	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, 0);
+	window = SDL_CreateWindow(title.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL);
 	if (!window) {
 		std::cerr << "ERROR: Could not create window: " << SDL_GetError() << '\n';
-		return;
+		throw std::exception();
 	}
 
-	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-	if (!renderer) {
-		std::cerr << "ERROR: Could not create renderer: " << SDL_GetError() << '\n';
-		return;
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+	context = SDL_GL_CreateContext(window);
+	if (!context) {
+		std::cerr << "ERROR: Could not create OpenGL context: " << SDL_GetError() << '\n';
+		throw std::exception();
 	}
+
+	if (!gladLoadGLLoader(SDL_GL_GetProcAddress)) {
+		std::cerr << "ERROR: Could not load OpenGL functions\n";
+		throw std::exception();
+	}
+
+	CreateShader();
+	CreateVAO();
 
 	if (TTF_Init() < 0) {
 		std::cerr << "ERROR: Could not initialize SDL_ttf: " << TTF_GetError() << '\n';
+		throw std::exception();
 	}
 	else {
 		font = TTF_OpenFont("font.ttf", fontSize);
 		if (!font) {
 			std::cerr << "ERROR: Could not load 'font.ttf': " << TTF_GetError() << '\n';
+			throw std::exception();
 		}
 	}
 
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-	SDL_RenderClear(renderer);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	SDL_StartTextInput();
+
+	stbi_set_flip_vertically_on_load(1);
 }
 
 Window::~Window() {
 	SDL_StopTextInput();
 
 	FreeTextures();
+	glDeleteProgram(program);
+	glDeleteVertexArrays(1, &vao);
+	glDeleteBuffers(1, &vbo);
 
 	TTF_CloseFont(font);
 	TTF_Quit();
 
-	SDL_DestroyRenderer(renderer);
+	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
 
 	SDL_Quit();
@@ -100,8 +154,9 @@ bool Window::Update() {
 }
 
 void Window::Present() {
-	SDL_RenderPresent(renderer);
-	SDL_RenderClear(renderer);
+	SDL_GL_SwapWindow(window);
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 }
 
 bool Window::ShouldClose() const {
@@ -111,28 +166,31 @@ bool Window::ShouldClose() const {
 void Window::LoadTextures(const std::vector<std::string>& textures) {
 	FreeTextures();
 
-	for (const std::string& texture : textures) {
-		std::string path = "Textures/" + texture;
-		int width, height;
-		unsigned char* data = stbi_load(path.c_str(), &width, &height, nullptr, STBI_rgb_alpha);
+	for (const std::string& name : textures) {
+		std::string path = "Textures/" + name;
+		Texture texture;
+		std::uint8_t* data = stbi_load(path.c_str(), &texture.width, &texture.height, nullptr, STBI_rgb_alpha);
 		if (!data) {
 			std::cerr << "ERROR: Could not load texture '" << path << "'\n";
-			loadedTextures.push_back(nullptr);
+			loadedTextures.push_back({0, 0, 0});
 			continue;
 		}
 
-		SDL_Texture* texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STATIC, width, height);
-		if (texture) {
-			if (SDL_UpdateTexture(texture, nullptr, data, width * 4) >= 0) {
-				loadedTextures.push_back(texture);
-				stbi_image_free(data);
-				continue;
-			}
-			SDL_DestroyTexture(texture);
-		}
-		std::cerr << "ERROR: Could not load texture '" << path << "': " << SDL_GetError() << '\n';
-		loadedTextures.push_back(nullptr);
+		glGenTextures(1, &texture.id);
+		glBindTexture(GL_TEXTURE_2D, texture.id);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+		glBindTexture(GL_TEXTURE_2D, texture.id);
+
 		stbi_image_free(data);
+
+		loadedTextures.push_back(texture);
 	}
 }
 
@@ -141,6 +199,7 @@ void Window::DrawSprite(const Sprite& sprite) {
 	SDL_GetWindowSize(window, &windowWidth, &windowHeight);
 
 	if (sprite.isText) {
+		/*
 		if (!font || sprite.text.length() == 0) {
 			return;
 		}
@@ -168,31 +227,33 @@ void Window::DrawSprite(const Sprite& sprite) {
 		SDL_RenderCopy(renderer, texture, nullptr, &dst);
 
 		SDL_DestroyTexture(texture);
+		*/
 	}
 	else {
-		if (sprite.texture >= loadedTextures.size() || !loadedTextures[sprite.texture]) {
+		if (sprite.texture >= loadedTextures.size() || !loadedTextures[sprite.texture].id) {
 			return;
 		}
 
-		SDL_Texture* texture = loadedTextures[sprite.texture];
-		int textureWidth, textureHeight;
+		const Texture& texture = loadedTextures[sprite.texture];
 
-		SDL_QueryTexture(texture, nullptr, nullptr, &textureWidth, &textureHeight);
+		glUseProgram(program);
+		glBindVertexArray(vao);
+		glBindTexture(GL_TEXTURE_2D, texture.id);
 
-		std::uint32_t animation = sprite.animation % (textureWidth / textureHeight);
-		SDL_Rect src;
-		src.x = textureHeight * animation;
-		src.y = 0;
-		src.w = textureHeight;
-		src.h = textureHeight;
+		int animationStates = texture.width / texture.height;
+		int animation = sprite.animation % animationStates;
+		GLfloat texcoordScale = 1.0f / animationStates;
 
-		SDL_Rect dst;
-		dst.x = (windowWidth / 2) + (sprite.x - sprite.scale);
-		dst.y = (windowHeight / 2) - (sprite.y + sprite.scale);
-		dst.w = sprite.scale * 2;
-		dst.h = sprite.scale * 2;
+		glUniform2f(positionUniform, static_cast<GLfloat>(sprite.x) / windowWidth * 2, static_cast<GLfloat>(sprite.y) / windowHeight * 2);
+		glUniform2f(sizeUniform, static_cast<GLfloat>(sprite.scale) / windowWidth, static_cast<GLfloat>(sprite.scale) / windowHeight);
+		glUniform1f(texcoordOffsetUniform, animation * texcoordScale);
+		glUniform1f(texcoordScaleUniform, texcoordScale);
+		
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		SDL_RenderCopy(renderer, texture, &src, &dst);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindVertexArray(0);
+		glUseProgram(0);
 	}
 }
 
@@ -206,6 +267,7 @@ void Window::SetTitle(const std::string& title) {
 
 void Window::SetSize(std::uint32_t width, std::uint32_t height) {
 	SDL_SetWindowSize(window, width, height);
+	glViewport(0, 0, width, height);
 }
 
 void Window::ReloadFont(std::uint32_t fontSize) {
@@ -217,10 +279,51 @@ void Window::ReloadFont(std::uint32_t fontSize) {
 }
 
 void Window::FreeTextures() {
-	for (SDL_Texture* texture : loadedTextures) {
-		if (texture) {
-			SDL_DestroyTexture(texture);
-		}
+	for (Texture& texture : loadedTextures) {
+		glDeleteTextures(1, &texture.id);
 	}
 	loadedTextures.clear();
+}
+
+void Window::CreateShader() {
+	GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertex, 1, &vertexShader, nullptr);
+	glCompileShader(vertex);
+
+	GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragment, 1, &fragmentShader, nullptr);
+	glCompileShader(fragment);
+
+	program = glCreateProgram();
+	glAttachShader(program, vertex);
+	glAttachShader(program, fragment);
+
+	glLinkProgram(program);
+
+	glDeleteShader(vertex);
+	glDeleteShader(fragment);
+
+	positionUniform = glGetUniformLocation(program, "uPosition");
+	sizeUniform = glGetUniformLocation(program, "uSize");
+	texcoordOffsetUniform = glGetUniformLocation(program, "uTexcoordOffset");
+	texcoordScaleUniform = glGetUniformLocation(program, "uTexcoordScale");
+}
+
+void Window::CreateVAO() {
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }

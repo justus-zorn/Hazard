@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include <glad/glad.h>
 #include <SDL.h>
 #include <SDL_ttf.h>
 
@@ -36,16 +37,26 @@ namespace Hazard {
 
 	private:
 		SDL_Window* window = nullptr;
-		SDL_Renderer* renderer = nullptr;
+		SDL_GLContext context = nullptr;
 		TTF_Font* font = nullptr;
 
 		bool shouldClose = false;
 
-		std::vector<SDL_Texture*> loadedTextures;
+		struct Texture {
+			GLuint id;
+			int width, height;
+		};
+
+		std::vector<Texture> loadedTextures;
+		GLuint program, positionUniform, sizeUniform, texcoordOffsetUniform, texcoordScaleUniform;
+		GLuint vbo, vao;
 
 		Input input;
 
 		void FreeTextures();
+
+		void CreateShader();
+		void CreateVAO();
 	};
 }
 
