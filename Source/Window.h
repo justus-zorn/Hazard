@@ -12,6 +12,7 @@
 #include <stb_truetype.h>
 
 #include "Common.h"
+#include "Shader.h"
 
 namespace Hazard {
 	class Window {
@@ -62,14 +63,13 @@ namespace Hazard {
 		};
 
 		std::vector<Texture> loadedTextures;
-		GLuint program, positionUniform, sizeUniform, texcoordOffsetUniform, texcoordScaleUniform;
+		Shader shader;
 		GLuint vbo, vao;
 
 		Input input;
 
 		void FreeTextures();
 
-		void CreateShader();
 		void CreateVAO();
 	};
 }

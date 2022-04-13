@@ -74,7 +74,7 @@ Window::Window(const std::string& title, std::uint32_t width, std::uint32_t heig
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	CreateShader();
+	shader.Create("Sprite", vertexShader, fragmentShader);
 	CreateVAO();
 
 	ReloadFont(fontSize);
@@ -89,7 +89,7 @@ Window::~Window() {
 	SDL_StopTextInput();
 
 	FreeTextures();
-	glDeleteProgram(program);
+	shader.Delete();
 	glDeleteVertexArrays(1, &vao);
 	glDeleteBuffers(1, &vbo);
 
@@ -213,14 +213,14 @@ void Window::DrawSprite(const Sprite& sprite) {
 
 		Glyph& glyph = font.glyphs[codepoint];
 
-		glUseProgram(program);
+		shader.Use();
 		glBindVertexArray(vao);
 		glBindTexture(GL_TEXTURE_2D, glyph.texture);
 
-		glUniform2f(positionUniform, 0.0f, 0.0f);
-		glUniform2f(sizeUniform, static_cast<GLfloat>(glyph.width) / windowWidth, static_cast<GLfloat>(glyph.height) / windowHeight);
-		glUniform1f(texcoordOffsetUniform, 0.0f);
-		glUniform1f(texcoordScaleUniform, 1.0f);
+		shader.SetUniform("uPosition", 0.0f, 0.0f);
+		shader.SetUniform("uSize", static_cast<GLfloat>(glyph.width) / windowWidth, static_cast<GLfloat>(glyph.height) / windowHeight);
+		shader.SetUniform("uTexcoordOffset", 0.0f);
+		shader.SetUniform("uTexcoordScale", 1.0f);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -264,7 +264,7 @@ void Window::DrawSprite(const Sprite& sprite) {
 
 		const Texture& texture = loadedTextures[sprite.texture];
 
-		glUseProgram(program);
+		shader.Use();
 		glBindVertexArray(vao);
 		glBindTexture(GL_TEXTURE_2D, texture.id);
 
@@ -272,10 +272,10 @@ void Window::DrawSprite(const Sprite& sprite) {
 		int animation = sprite.animation % animationStates;
 		GLfloat texcoordScale = 1.0f / animationStates;
 
-		glUniform2f(positionUniform, static_cast<GLfloat>(sprite.x) / windowWidth * 2, static_cast<GLfloat>(sprite.y) / windowHeight * 2);
-		glUniform2f(sizeUniform, static_cast<GLfloat>(sprite.scale) / windowWidth, static_cast<GLfloat>(sprite.scale) / windowHeight);
-		glUniform1f(texcoordOffsetUniform, animation * texcoordScale);
-		glUniform1f(texcoordScaleUniform, texcoordScale);
+		shader.SetUniform("uPosition", static_cast<GLfloat>(sprite.x) / windowWidth * 2, static_cast<GLfloat>(sprite.y) / windowHeight * 2);
+		shader.SetUniform("uSize", static_cast<GLfloat>(sprite.scale) / windowWidth, static_cast<GLfloat>(sprite.scale) / windowHeight);
+		shader.SetUniform("uTexcoordOffset", animation * texcoordScale);
+		shader.SetUniform("uTexcoordScale", texcoordScale);
 		
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -322,30 +322,6 @@ void Window::FreeTextures() {
 		glDeleteTextures(1, &texture.id);
 	}
 	loadedTextures.clear();
-}
-
-void Window::CreateShader() {
-	GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertex, 1, &vertexShader, nullptr);
-	glCompileShader(vertex);
-
-	GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment, 1, &fragmentShader, nullptr);
-	glCompileShader(fragment);
-
-	program = glCreateProgram();
-	glAttachShader(program, vertex);
-	glAttachShader(program, fragment);
-
-	glLinkProgram(program);
-
-	glDeleteShader(vertex);
-	glDeleteShader(fragment);
-
-	positionUniform = glGetUniformLocation(program, "uPosition");
-	sizeUniform = glGetUniformLocation(program, "uSize");
-	texcoordOffsetUniform = glGetUniformLocation(program, "uTexcoordOffset");
-	texcoordScaleUniform = glGetUniformLocation(program, "uTexcoordScale");
 }
 
 void Window::CreateVAO() {
